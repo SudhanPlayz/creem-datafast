@@ -1,8 +1,5 @@
 import type { Metadata } from "next";
-import Script from "next/script";
 import { Instrument_Serif, Space_Grotesk } from "next/font/google";
-
-import { demoConfig, getDemoHostname } from "@/lib/config";
 
 import "./globals.css";
 
@@ -29,18 +26,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${displayFont.variable} ${bodyFont.variable}`}>
-        {demoConfig.datafastWebsiteId ? (
-          <Script
-            defer
-            src="https://datafa.st/js/script.js"
-            data-website-id={demoConfig.datafastWebsiteId}
-            data-domain={getDemoHostname()}
-            data-disable-payments="true"
-          />
-        ) : null}
-        {children}
-      </body>
+      <body className={`${displayFont.variable} ${bodyFont.variable}`}>{children}</body>
     </html>
   );
 }

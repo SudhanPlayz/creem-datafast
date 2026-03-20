@@ -3,11 +3,3 @@ export const demoConfig = {
   creemProductId: process.env.CREEM_PRODUCT_ID ?? "",
   datafastWebsiteId: process.env.NEXT_PUBLIC_DATAFAST_WEBSITE_ID ?? "",
 };
-
-export function getDemoHostname(): string {
-  try {
-    return new URL(demoConfig.appBaseUrl).hostname;
-  } catch {
-    return "localhost";
-  }
-}

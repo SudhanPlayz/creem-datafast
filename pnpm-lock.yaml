@@ -35,6 +35,9 @@ importers:
       creem:
         specifier: ^1.4.3
         version: 1.4.3
+      datafast:
+        specifier: ^2.1.2
+        version: 2.1.2(react@19.2.4)
       next:
         specifier: ^16.2.0
         version: 16.2.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -889,6 +892,32 @@ packages:
 
   csstype@3.2.3:
     resolution: {integrity: sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ==}
+
+  datafast@2.1.2:
+    resolution: {integrity: sha512-ge69LqknSzurZI9NugTh933LsSMp3KEMPaSEfHApkOnIU0b3ncSyR3WftATg+H35zOZhHN3vc46uM/0TCFsYLg==}
+    peerDependencies:
+      '@react-native-async-storage/async-storage': '>=1.0.0'
+      '@react-native-community/netinfo': '>=9.0.0'
+      '@react-navigation/native': '>=6.0.0'
+      expo-constants: '>=14.0.0'
+      expo-device: '>=5.0.0'
+      react: '>=17.0.0'
+      react-native: '>=0.64.0'
+    peerDependenciesMeta:
+      '@react-native-async-storage/async-storage':
+        optional: true
+      '@react-native-community/netinfo':
+        optional: true
+      '@react-navigation/native':
+        optional: true
+      expo-constants:
+        optional: true
+      expo-device:
+        optional: true
+      react:
+        optional: true
+      react-native:
+        optional: true
 
   debug@4.4.3:
     resolution: {integrity: sha512-RGwwWnwQvkVfavKVt22FGLw+xYSdzARwm0ru6DhTVA3umU5hZc28V3kO4stgYryrTlLpuvgI9GiijltAjNbcqA==}
@@ -2297,6 +2326,10 @@ snapshots:
       which: 2.0.2
 
   csstype@3.2.3: {}
+
+  datafast@2.1.2(react@19.2.4):
+    optionalDependencies:
+      react: 19.2.4
 
   debug@4.4.3:
     dependencies:

@@ -169,8 +169,8 @@ pnpm --filter demo-next dev
 
 The demo includes:
 
-- landing page with the DataFast script
-- tracking inspector for browser cookies
+- landing page with the official DataFast SDK
+- tracking inspector for live DataFast visitor/session IDs
 - server-created checkout flow
 - direct Creem payment-link flow derived automatically from `CREEM_PRODUCT_ID`
 - webhook route powered by the package

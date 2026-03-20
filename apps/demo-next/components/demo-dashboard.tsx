@@ -4,9 +4,11 @@ import { startTransition, useEffect, useMemo, useState } from "react";
 
 import type { DataFastTracking } from "@itzsudhan/creem-datafast";
 import {
+  appendDataFastTracking,
   attributeCreemPaymentLink,
-  getDataFastTracking,
 } from "@itzsudhan/creem-datafast/client";
+
+import { getDataFastClient } from "@/lib/datafast";
 
 type DebugEvent = {
   id: string;
@@ -23,11 +25,24 @@ type DemoDashboardProps = {
 export function DemoDashboard({ directPaymentLink }: DemoDashboardProps) {
   const [tracking, setTracking] = useState<DataFastTracking>({});
   const [events, setEvents] = useState<DebugEvent[]>([]);
+  const [trackingReady, setTrackingReady] = useState(false);
 
   useEffect(() => {
-    setTracking(getDataFastTracking());
-
     let cancelled = false;
+
+    const initTracking = async () => {
+      const client = await getDataFastClient();
+      const params = client?.getTrackingParams();
+
+      if (!cancelled) {
+        setTracking({
+          datafastVisitorId: params?._df_vid,
+          datafastSessionId: params?._df_sid,
+        });
+        setTrackingReady(true);
+      }
+    };
+
     const load = async () => {
       const response = await fetch("/api/debug/events", { cache: "no-store" });
       const nextEvents = (await response.json()) as DebugEvent[];
@@ -39,6 +54,7 @@ export function DemoDashboard({ directPaymentLink }: DemoDashboardProps) {
       }
     };
 
+    void initTracking();
     void load();
     const interval = window.setInterval(() => void load(), 4_000);
     return () => {
@@ -51,6 +67,10 @@ export function DemoDashboard({ directPaymentLink }: DemoDashboardProps) {
     () => (directPaymentLink ? attributeCreemPaymentLink(directPaymentLink, tracking) : ""),
     [directPaymentLink, tracking],
   );
+  const checkoutAction = useMemo(
+    () => appendDataFastTracking("/api/checkout", tracking),
+    [tracking],
+  );
 
   return (
     <div className="dashboard">
@@ -58,19 +78,20 @@ export function DemoDashboard({ directPaymentLink }: DemoDashboardProps) {
         <div className="eyebrow">Zero-glue attribution</div>
         <h1>CREEM revenue attribution that visibly works end to end.</h1>
         <p className="lede">
-          This demo reads the live DataFast browser cookies, injects them into Creem checkout
-          metadata, and shows the exact payload forwarded back to DataFast after the webhook lands.
+          This demo initializes the official DataFast SDK in the browser, injects the live tracking
+          IDs into Creem checkout metadata, and shows the exact payload forwarded back to DataFast
+          after the webhook lands.
         </p>
         <div className="actions">
-          <form action="/api/checkout" method="POST">
-            <button className="primary-button" type="submit">
+          <form action={checkoutAction} method="POST">
+            <button className="primary-button" disabled={!trackingReady} type="submit">
               Launch Server Checkout
             </button>
           </form>
           <a
             className="secondary-button"
             href={attributedPaymentLink || "#"}
-            aria-disabled={!attributedPaymentLink}
+            aria-disabled={!trackingReady || !attributedPaymentLink}
           >
             Open Direct Creem Link
           </a>
@@ -80,7 +101,7 @@ export function DemoDashboard({ directPaymentLink }: DemoDashboardProps) {
       <section className="panel">
         <div className="section-header">
           <h2>Tracking Inspector</h2>
-          <span>Browser cookies detected in real time</span>
+          <span>DataFast SDK tracking detected in real time</span>
         </div>
         <div className="metric-grid">
           <MetricCard
@@ -95,8 +116,8 @@ export function DemoDashboard({ directPaymentLink }: DemoDashboardProps) {
           />
           <MetricCard
             label="Direct Link"
-            value={attributedPaymentLink ? "Ready" : "Missing payment link env"}
-            tone={attributedPaymentLink ? "good" : "warn"}
+            value={trackingReady && attributedPaymentLink ? "Ready" : "Initializing"}
+            tone={trackingReady && attributedPaymentLink ? "good" : "warn"}
           />
         </div>
       </section>
