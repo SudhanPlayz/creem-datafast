@@ -44,16 +44,14 @@ describe("client helpers", () => {
   });
 
   it("uses document.cookie and window.origin when explicit inputs are omitted", () => {
-    // @ts-expect-error test shim
-    global.document = {
+    Reflect.set(globalThis, "document", {
       cookie: "datafast_visitor_id=vis_doc; datafast_session_id=sess_doc",
-    };
-    // @ts-expect-error test shim
-    global.window = {
+    });
+    Reflect.set(globalThis, "window", {
       location: {
         origin: "https://app.example.com",
       },
-    };
+    });
 
     expect(getDataFastTracking()).toEqual({
       datafastVisitorId: "vis_doc",
@@ -70,6 +68,8 @@ describe("client helpers", () => {
       datafastVisitorId: "vis_123",
       datafastSessionId: undefined,
     });
+    expect(getDataFastTracking()).toEqual({});
+    Reflect.set(globalThis, "document", {});
     expect(getDataFastTracking()).toEqual({});
 
     expect(appendDataFastTracking("/api/checkout", { datafastVisitorId: "vis_local" })).toBe(

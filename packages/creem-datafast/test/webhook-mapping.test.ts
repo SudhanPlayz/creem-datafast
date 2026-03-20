@@ -169,6 +169,48 @@ describe("webhook mapping internals", () => {
     });
   });
 
+  it("uses hydrated transaction amount when amountPaid is absent", async () => {
+    await expect(
+      mapWebhookToPayment(
+        JSON.stringify({
+          id: "evt_sub_amount_fallback",
+          eventType: "subscription.paid",
+          object: {
+            id: "sub_456",
+            product: {
+              price: 999,
+              currency: "USD",
+            },
+          },
+        }),
+        {
+          creemClient: createFakeCreemClient({
+            transactions: {
+              async getById(id) {
+                return {
+                  id,
+                  mode: "test",
+                  object: "transaction",
+                  amount: 4321,
+                  currency: "USD",
+                  type: "payment",
+                  status: "paid",
+                } as never;
+              },
+            },
+          }),
+          hydrateTransactions: true,
+        },
+      ),
+    ).resolves.toMatchObject({
+      ignored: false,
+      payment: {
+        amount: 43.21,
+        currency: "USD",
+      },
+    });
+  });
+
   it("supports hydration-free subscription mapping when no transactions client exists", async () => {
     await expect(
       mapWebhookToPayment(
@@ -256,5 +298,50 @@ describe("webhook mapping internals", () => {
         {},
       ),
     ).rejects.toBeInstanceOf(UnsupportedEventError);
+  });
+
+  it("logs non-Error hydration failures for refunds", async () => {
+    const warn = vi.fn();
+
+    await expect(
+      mapWebhookToPayment(
+        JSON.stringify({
+          id: "evt_refund_string_error",
+          eventType: "refund.created",
+          object: {
+            transaction: {
+              id: "tran_string_error",
+              amount: 1200,
+              currency: "USD",
+            },
+          },
+        }),
+        {
+          creemClient: createFakeCreemClient({
+            transactions: {
+              async getById() {
+                throw "plain-string-error";
+              },
+            },
+          }),
+          hydrateTransactions: true,
+          logger: { warn },
+        },
+      ),
+    ).resolves.toMatchObject({
+      ignored: false,
+      payment: {
+        amount: 12,
+        currency: "USD",
+      },
+    });
+
+    expect(warn).toHaveBeenCalledWith(
+      "Falling back to webhook payload after transaction hydration failure.",
+      expect.objectContaining({
+        transactionId: "tran_string_error",
+        error: "plain-string-error",
+      }),
+    );
   });
 });

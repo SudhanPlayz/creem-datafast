@@ -60,7 +60,7 @@ describe("infrastructure paths", () => {
           retry: { retries: 0, baseDelayMs: 1, maxDelayMs: 1 },
         },
       ),
-    ).rejects.toMatchObject<DataFastRequestError>({
+    ).rejects.toMatchObject({
       status: 400,
       requestId: "req_123",
       retryable: false,

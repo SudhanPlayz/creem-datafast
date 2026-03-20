@@ -24,7 +24,7 @@ describe("forwardPayment internals", () => {
       forwardPayment(payment, {
         datafastApiKey: "df_test",
       }),
-    ).rejects.toMatchObject<DataFastRequestError>({
+    ).rejects.toMatchObject({
       retryable: false,
     });
   });
@@ -86,7 +86,7 @@ describe("forwardPayment internals", () => {
         fetch: fetchMock,
         retry: { retries: 0, baseDelayMs: 1, maxDelayMs: 1 },
       }),
-    ).rejects.toMatchObject<DataFastRequestError>({
+    ).rejects.toMatchObject({
       retryable: true,
     });
   });

@@ -166,9 +166,10 @@ async function mapRefundCreated(
   const transaction = asRecord(refund?.transaction);
   const subscription = asSubscription(refund?.subscription);
   const transactionId = asString(refund?.id) ?? asString(transaction?.id) ?? event.id;
+  const transactionRecordId = asString(transaction?.id);
   const hydratedTransaction =
-    options.hydrateTransactions && asString(transaction?.id)
-      ? await tryHydrateTransaction(asString(transaction?.id) ?? transactionId, options)
+    options.hydrateTransactions && transactionRecordId
+      ? await tryHydrateTransaction(transactionRecordId, options)
       : undefined;
   const currency =
     asString(refund?.refund_currency) ??

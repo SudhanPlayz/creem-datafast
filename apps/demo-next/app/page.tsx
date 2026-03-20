@@ -56,12 +56,12 @@ export default async function HomePage() {
 
       <section className="hero-band">
         <div className="hero-copy">
-          <div className="eyebrow">AI-Native Revenue Attribution</div>
-          <h1>Give your agent one prompt and let it wire CREEM payments back to DataFast.</h1>
+          <div className="eyebrow">Creem-Branded Neobrutal Demo</div>
+          <h1>One prompt. One wrapper. Every CREEM payment attributed back to DataFast.</h1>
           <p className="hero-lede">
-            This demo ships the package, the public skill file, the live attribution flow, and the
-            exact payment payload feed in one place. The goal is simple: zero glue code for
-            merchants, and zero ambiguity for judges or AI assistants.
+            This ships the package, the hosted skill file, the generic webhook surface, and the
+            live attribution proof in one place. Merchants get zero glue code. Judges and AI agents
+            get exact payloads instead of promises.
           </p>
           <div className="hero-actions">
             <a className="primary-button" href="#live-demo">
@@ -73,11 +73,11 @@ export default async function HomePage() {
           </div>
           <div className="hero-stats">
             <div className="stat-card">
-              <span>Package</span>
+              <span>SDK</span>
               <strong>Generic-first TypeScript API</strong>
             </div>
             <div className="stat-card">
-              <span>Skill Surface</span>
+              <span>Skill</span>
               <strong>Hosted SKILL.md + `npx` installer</strong>
             </div>
             <div className="stat-card">
@@ -129,7 +129,7 @@ export default async function HomePage() {
       <section className="agent-surface">
         <div className="surface-copy">
           <div className="eyebrow">Agent Onboarding</div>
-          <h2>Same pattern Creem uses, but for CREEM × DataFast attribution.</h2>
+          <h2>The same AI-agent pattern Creem uses, remixed for CREEM × DataFast attribution.</h2>
           <p>
             Your agent should not have to reverse-engineer checkout metadata, raw webhook handling,
             or DataFast payment payloads. The hosted skill file gives it a clean, opinionated
@@ -149,7 +149,7 @@ export default async function HomePage() {
       <section className="workflow-shell">
         <div className="section-heading">
           <div className="eyebrow">How It Lands</div>
-          <h2>Three steps from visitor acquisition to attributed revenue.</h2>
+          <h2>Three steps from browser pageview to attributed revenue.</h2>
         </div>
         <div className="workflow-grid">
           {workflow.map((step, index) => (
@@ -164,7 +164,7 @@ export default async function HomePage() {
       <section className="demo-shell" id="live-demo">
         <div className="demo-intro">
           <div className="eyebrow">Live Demo</div>
-          <h2>Checkout, webhook, and forwarded attribution payload in one view.</h2>
+          <h2>Try the hosted checkout flow and inspect the exact payload that lands in DataFast.</h2>
           <p>
             The server checkout button uses the package wrapper directly. The direct-link button uses
             the browser helper to append DataFast metadata onto the hosted Creem product URL. The
