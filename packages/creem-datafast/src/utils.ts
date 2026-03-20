@@ -137,7 +137,8 @@ export function cleanObject<T extends Record<string, unknown>>(value: T): T {
 export function jitterDelay(baseDelayMs: number, maxDelayMs: number, attempt: number): number {
   const capped = Math.min(baseDelayMs * 2 ** attempt, maxDelayMs);
   const floor = Math.max(50, Math.floor(capped * 0.5));
-  return floor + Math.floor(Math.random() * (capped - floor + 1));
+  const ceiling = Math.max(capped, floor);
+  return floor + Math.floor(Math.random() * (ceiling - floor + 1));
 }
 
 function normalizeHex(value: string): string | undefined {

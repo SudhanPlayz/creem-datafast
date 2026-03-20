@@ -19,7 +19,12 @@ import { asNumber, asRecord, asString, cleanObject, parseJson, toIsoString } fro
 type MapWebhookEventOptions = Pick<CreateCreemDataFastOptions, "creemClient" | "hydrateTransactions" | "logger">;
 
 type MapWebhookEventResult =
-  | { ignored: true; reason: "unsupported_event" | "subscription_checkout_delegated" }
+  | {
+      ignored: true;
+      eventId: string;
+      eventType: string;
+      reason: "unsupported_event" | "subscription_checkout_delegated";
+    }
   | {
       ignored: false;
       eventId: string;
@@ -45,7 +50,12 @@ export async function mapWebhookToPayment(
     case "refund.created":
       return mapRefundCreated(event, options);
     default:
-      return { ignored: true, reason: "unsupported_event" };
+      return {
+        ignored: true,
+        eventId: event.id,
+        eventType: event.eventType,
+        reason: "unsupported_event",
+      };
   }
 }
 
@@ -56,7 +66,12 @@ async function mapCheckoutCompleted(event: BaseWebhookEvent): Promise<MapWebhook
   const subscription = asSubscription(checkout?.subscription);
 
   if (subscription || orderType === "recurring") {
-    return { ignored: true, reason: "subscription_checkout_delegated" };
+    return {
+      ignored: true,
+      eventId: event.id,
+      eventType: event.eventType,
+      reason: "subscription_checkout_delegated",
+    };
   }
 
   const amountMinor =

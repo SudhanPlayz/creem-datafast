@@ -40,6 +40,36 @@ describe("createNextWebhookHandler", () => {
     expect(response.status).toBe(200);
   });
 
+  it("returns 200 with an Ignored body for ignored events", async () => {
+    const handler = createNextWebhookHandler({
+      async createCheckout() {
+        throw new Error("not used");
+      },
+      async handleWebhook() {
+        throw new Error("not used");
+      },
+      async handleWebhookRequest() {
+        return {
+          ok: true,
+          ignored: true,
+          eventId: "evt_ignored",
+          eventType: "subscription.canceled",
+          reason: "unsupported_event",
+        };
+      },
+      async verifyWebhookSignature() {
+        return true;
+      },
+      async forwardPayment() {
+        return null;
+      },
+    } satisfies CreemDataFastClient);
+
+    const response = await handler(new Request("https://example.com"));
+    expect(response.status).toBe(200);
+    await expect(response.text()).resolves.toBe("Ignored");
+  });
+
   it("returns 401 for invalid signatures", async () => {
     const handler = createNextWebhookHandler({
       async createCheckout() {
@@ -61,5 +91,27 @@ describe("createNextWebhookHandler", () => {
 
     const response = await handler(new Request("https://example.com"));
     expect(response.status).toBe(401);
+  });
+
+  it("rethrows unexpected errors", async () => {
+    const handler = createNextWebhookHandler({
+      async createCheckout() {
+        throw new Error("not used");
+      },
+      async handleWebhook() {
+        throw new Error("not used");
+      },
+      async handleWebhookRequest() {
+        throw new Error("unexpected");
+      },
+      async verifyWebhookSignature() {
+        return true;
+      },
+      async forwardPayment() {
+        return null;
+      },
+    } satisfies CreemDataFastClient);
+
+    await expect(handler(new Request("https://example.com"))).rejects.toThrow("unexpected");
   });
 });

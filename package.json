@@ -5,7 +5,9 @@
   "scripts": {
     "build": "pnpm -r build",
     "test": "pnpm --filter @itzsudhan/creem-datafast test",
+    "coverage": "pnpm --filter @itzsudhan/creem-datafast test -- --coverage",
     "typecheck": "pnpm -r typecheck",
+    "ci": "pnpm typecheck && pnpm coverage && pnpm build",
     "dev:demo": "pnpm --filter demo-next dev",
     "dev:express": "pnpm --filter example-express dev"
   },

@@ -128,6 +128,20 @@ describe("infrastructure paths", () => {
     expect(redis.del).toHaveBeenCalledWith("creem-datafast:evt_1");
   });
 
+  it("supports custom Upstash prefixes and missing del handlers", async () => {
+    const redis = {
+      set: vi.fn(async () => null),
+    };
+    const store = createUpstashIdempotencyStore(redis, { keyPrefix: "custom:" });
+
+    expect(await store.claim("evt_2", 30)).toBe(false);
+    await expect(store.release?.("evt_2")).resolves.toBeUndefined();
+    expect(redis.set).toHaveBeenCalledWith("custom:evt_2", "1", {
+      nx: true,
+      ex: 30,
+    });
+  });
+
   it("returns 502 from the Next helper when forwarding fails", async () => {
     const handler = createNextWebhookHandler({
       async createCheckout() {

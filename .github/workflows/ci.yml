@@ -1,11 +1,44 @@
-name: ci
+name: CI
 
 on:
   push:
   pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
-  node:
+  validate:
+    name: Validate (Node 20)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.30.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm coverage
+      - run: pnpm build
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: creem-datafast-coverage-summary
+          path: packages/creem-datafast/coverage/coverage-summary.json
+          if-no-files-found: ignore
+
+  node-matrix:
+    name: Test Matrix (Node ${{ matrix.node }})
+    needs: validate
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -21,10 +54,10 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm test
-      - run: pnpm typecheck
-      - run: pnpm build
 
   bun-smoke:
+    name: Bun Smoke
+    needs: validate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

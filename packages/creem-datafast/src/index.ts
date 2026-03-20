@@ -69,14 +69,13 @@ export function createCreemDataFast(options: CreateCreemDataFastOptions): CreemD
         hydrateTransactions: options.hydrateTransactions,
         logger: options.logger,
       });
-      const eventDetails = getEventDetails(input.rawBody);
 
       if (mappedEvent.ignored) {
         return {
           ok: true,
           ignored: true,
-          eventId: eventDetails.id,
-          eventType: eventDetails.eventType,
+          eventId: mappedEvent.eventId,
+          eventType: mappedEvent.eventType,
           reason: mappedEvent.reason,
         };
       }
@@ -157,21 +156,6 @@ function prepareCheckoutRequest(
     },
     tracking,
   };
-}
-
-function getEventDetails(rawBody: string): { id: string; eventType: string } {
-  try {
-    const parsed = JSON.parse(rawBody) as { id?: string; eventType?: string };
-    return {
-      id: parsed.id ?? "unknown",
-      eventType: parsed.eventType ?? "unknown",
-    };
-  } catch {
-    return {
-      id: "unknown",
-      eventType: "unknown",
-    };
-  }
 }
 
 export async function verifyWebhookSignature(
