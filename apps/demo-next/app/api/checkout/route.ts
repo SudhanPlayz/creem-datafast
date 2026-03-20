@@ -6,10 +6,20 @@ export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   const client = getCreemDataFast();
+  const requestUrl = new URL(request.url);
+  const successUrl = new URL(`${demoConfig.appBaseUrl}/success`);
+
+  for (const key of ["datafast_visitor_id", "datafast_session_id"]) {
+    const value = requestUrl.searchParams.get(key);
+    if (value) {
+      successUrl.searchParams.set(key, value);
+    }
+  }
+
   const checkout = await client.createCheckout(
     {
       productId: demoConfig.creemProductId,
-      successUrl: `${demoConfig.appBaseUrl}/success`,
+      successUrl: successUrl.toString(),
     },
     {
       request,

@@ -15,12 +15,23 @@ export function getDataFastClient(): Promise<DataFastWeb | null> {
     return clientPromise;
   }
 
-  clientPromise = initDataFast({
-    websiteId,
-    domain: window.location.hostname,
-    autoCapturePageviews: true,
-    allowLocalhost: true,
-  });
+  clientPromise = (async () => {
+    const client = await initDataFast({
+      websiteId,
+      domain: window.location.hostname,
+      autoCapturePageviews: {
+        captureInitialPageview: false,
+      },
+      allowLocalhost: true,
+    });
+
+    // Flush the initial pageview before checkout actions become available so
+    // DataFast can associate the later payment with an existing visitor event.
+    await client.trackPageview();
+    await client.flush();
+
+    return client;
+  })();
 
   return clientPromise;
 }

@@ -1,10 +1,17 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
 
-export default async function SuccessPage() {
+type SuccessPageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export default async function SuccessPage({ searchParams }: SuccessPageProps) {
   const cookieStore = await cookies();
-  const visitorId = cookieStore.get("datafast_visitor_id")?.value ?? "Missing";
-  const sessionId = cookieStore.get("datafast_session_id")?.value ?? "Missing";
+  const params = await searchParams;
+  const visitorId =
+    getFirst(params.datafast_visitor_id) ?? cookieStore.get("datafast_visitor_id")?.value ?? "Missing";
+  const sessionId =
+    getFirst(params.datafast_session_id) ?? cookieStore.get("datafast_session_id")?.value ?? "Missing";
 
   return (
     <main className="success-shell">
@@ -31,4 +38,8 @@ export default async function SuccessPage() {
       </section>
     </main>
   );
+}
+
+function getFirst(value: string | string[] | undefined): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
 }

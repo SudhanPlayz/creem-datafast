@@ -15,7 +15,8 @@ export default async function HomePage() {
             the browser helper to append DataFast metadata onto a hosted Creem payment link.
           </p>
           <ul className="feature-list">
-            <li>Reads `datafast_visitor_id` and `datafast_session_id` from browser cookies</li>
+            <li>Reads live DataFast visitor and session IDs from the official browser SDK</li>
+            <li>Flushes the first DataFast pageview before checkout so attribution has a real visitor event</li>
             <li>Injects tracking into checkout metadata without extra merchant glue</li>
             <li>Shows the exact DataFast payment payload after webhook processing</li>
           </ul>

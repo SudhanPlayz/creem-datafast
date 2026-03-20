@@ -25,21 +25,35 @@ type DemoDashboardProps = {
 export function DemoDashboard({ directPaymentLink }: DemoDashboardProps) {
   const [tracking, setTracking] = useState<DataFastTracking>({});
   const [events, setEvents] = useState<DebugEvent[]>([]);
-  const [trackingReady, setTrackingReady] = useState(false);
+  const [trackingStatus, setTrackingStatus] = useState<"initializing" | "ready" | "error">(
+    "initializing",
+  );
+  const [trackingError, setTrackingError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
 
     const initTracking = async () => {
-      const client = await getDataFastClient();
-      const params = client?.getTrackingParams();
+      try {
+        const client = await getDataFastClient();
+        const params = client?.getTrackingParams();
 
-      if (!cancelled) {
-        setTracking({
-          datafastVisitorId: params?._df_vid,
-          datafastSessionId: params?._df_sid,
-        });
-        setTrackingReady(true);
+        if (!cancelled) {
+          setTracking({
+            datafastVisitorId: params?._df_vid,
+            datafastSessionId: params?._df_sid,
+          });
+          setTrackingStatus("ready");
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setTrackingStatus("error");
+          setTrackingError(
+            error instanceof Error
+              ? error.message
+              : "The initial DataFast pageview could not be synchronized.",
+          );
+        }
       }
     };
 
@@ -71,6 +85,13 @@ export function DemoDashboard({ directPaymentLink }: DemoDashboardProps) {
     () => appendDataFastTracking("/api/checkout", tracking),
     [tracking],
   );
+  const canLaunchCheckout = trackingStatus === "ready";
+  const directLinkStatus =
+    trackingStatus === "error"
+      ? "Sync failed"
+      : trackingStatus === "ready" && attributedPaymentLink
+        ? "Ready"
+        : "Syncing";
 
   return (
     <div className="dashboard">
@@ -78,30 +99,37 @@ export function DemoDashboard({ directPaymentLink }: DemoDashboardProps) {
         <div className="eyebrow">Zero-glue attribution</div>
         <h1>CREEM revenue attribution that visibly works end to end.</h1>
         <p className="lede">
-          This demo initializes the official DataFast SDK in the browser, injects the live tracking
-          IDs into Creem checkout metadata, and shows the exact payload forwarded back to DataFast
-          after the webhook lands.
+          This demo initializes the official DataFast SDK in the browser, flushes the initial
+          pageview so the visitor exists in DataFast, injects the live tracking IDs into Creem
+          checkout metadata, and shows the exact payload forwarded back to DataFast after the
+          webhook lands.
         </p>
         <div className="actions">
           <form action={checkoutAction} method="POST">
-            <button className="primary-button" disabled={!trackingReady} type="submit">
+            <button className="primary-button" disabled={!canLaunchCheckout} type="submit">
               Launch Server Checkout
             </button>
           </form>
           <a
             className="secondary-button"
             href={attributedPaymentLink || "#"}
-            aria-disabled={!trackingReady || !attributedPaymentLink}
+            aria-disabled={!canLaunchCheckout || !attributedPaymentLink}
           >
             Open Direct Creem Link
           </a>
         </div>
+        {trackingError ? (
+          <p className="lede">
+            Tracking sync failed: {trackingError}. DataFast attribution will not be reliable until
+            the initial pageview can be sent.
+          </p>
+        ) : null}
       </section>
 
       <section className="panel">
         <div className="section-header">
           <h2>Tracking Inspector</h2>
-          <span>DataFast SDK tracking detected in real time</span>
+          <span>DataFast SDK tracking and first-visit sync status</span>
         </div>
         <div className="metric-grid">
           <MetricCard
@@ -116,8 +144,8 @@ export function DemoDashboard({ directPaymentLink }: DemoDashboardProps) {
           />
           <MetricCard
             label="Direct Link"
-            value={trackingReady && attributedPaymentLink ? "Ready" : "Initializing"}
-            tone={trackingReady && attributedPaymentLink ? "good" : "warn"}
+            value={directLinkStatus}
+            tone={trackingStatus === "ready" && attributedPaymentLink ? "good" : "warn"}
           />
         </div>
       </section>
