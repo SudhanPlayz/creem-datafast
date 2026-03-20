@@ -3,6 +3,7 @@ import { defineConfig } from "tsup";
 export default defineConfig({
   entry: [
     "src/index.ts",
+    "src/react/index.tsx",
     "src/next.ts",
     "src/client/index.ts",
     "src/idempotency/upstash.ts",

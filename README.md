@@ -17,11 +17,12 @@ This monorepo contains the package, the public demo, the Express example, the fr
 
 - Wraps the official [`creem`](https://docs.creem.io/code/sdks/typescript-core) core SDK directly, not `creem_io`
 - Generic-first API for any framework, with only one tiny Next.js helper export
+- Optional React component layer for browser tracking, checkout buttons, and attribution UI
 - Public demo that visibly shows checkout creation, webhook processing, and the exact DataFast payload
 - Root-domain DataFast tracking plus same-origin event proxy support for subdomain-safe attribution
 - Hosted `SKILL.md` and local `npx` installer for AI-agent onboarding
 - Refund support, idempotency, currency-aware amounts, retry logic, and transaction hydration
-- `67` passing tests with `100%` statements, branches, functions, and lines
+- `80` passing tests with `99.84%` statements and lines, `99.14%` branches, and `100%` functions
 - CI on push and PR with Node `18`, `20`, `22`, plus Bun smoke coverage
 
 ## What The Package Does
@@ -217,6 +218,40 @@ const directCreemLink = attributeCreemPaymentLink(
 );
 ```
 
+## React Quickstart
+
+```tsx
+"use client";
+
+import {
+  CreemCheckoutButton,
+  CreemDataFastProvider,
+  CreemPaymentLinkButton,
+  TrackingInspector,
+} from "@itzsudhan/creem-datafast/react";
+
+export function AttributionSurface() {
+  return (
+    <CreemDataFastProvider apiUrl="/api/events" websiteId={process.env.NEXT_PUBLIC_DATAFAST_WEBSITE_ID!}>
+      <TrackingInspector />
+      <CreemCheckoutButton action="/api/checkout">Launch Server Checkout</CreemCheckoutButton>
+      <CreemPaymentLinkButton href="https://creem.io/payment/prod_123">
+        Open Direct Creem Link
+      </CreemPaymentLinkButton>
+    </CreemDataFastProvider>
+  );
+}
+```
+
+The React layer owns:
+
+- DataFast SDK init
+- initial pageview flush before checkout launch
+- visitor/session state exposure
+- attributed server-checkout actions
+- attributed hosted CREEM payment links
+- neobrutalist widgets you can drop straight into a React or Next.js app
+
 ## Supported Frameworks
 
 Use one of two primitives:
@@ -316,11 +351,11 @@ npx @itzsudhan/creem-datafast skill --write ./SKILL.md
 
 Current quality bar:
 
-- `67` passing tests
-- `100%` statements
-- `100%` branches
+- `80` passing tests
+- `99.84%` statements
+- `99.14%` branches
 - `100%` functions
-- `100%` lines
+- `99.84%` lines
 - CI on `push`, `pull_request`, and manual dispatch
 - Validation on Node `20`
 - Test matrix on Node `18`, `20`, `22`
@@ -340,6 +375,7 @@ pnpm build
 
 ## Docs Index
 
+- [docs/react.md](./docs/react.md)
 - [docs/frameworks/README.md](./docs/frameworks/README.md)
 - [docs/testing-and-quality.md](./docs/testing-and-quality.md)
 - [docs/troubleshooting.md](./docs/troubleshooting.md)

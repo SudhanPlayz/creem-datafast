@@ -2,11 +2,11 @@
 
 ## Current Snapshot
 
-- `67` passing tests
-- `100%` statements
-- `100%` branches
+- `80` passing tests
+- `99.84%` statements
+- `99.14%` branches
 - `100%` functions
-- `100%` lines
+- `99.84%` lines
 
 ## Test Categories
 
@@ -20,6 +20,7 @@
 | Currency conversion | 0-decimal, 2-decimal, and 3-decimal currencies |
 | Framework adapter | Next.js webhook helper behavior |
 | Facade API | package-level client orchestration and error release paths |
+| React layer | provider init, root-domain resolution, attributed hooks, buttons, styles, and client-safe fallbacks |
 
 ## CI Workflow
 

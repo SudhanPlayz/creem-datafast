@@ -280,6 +280,13 @@ pre {
   gap: 12px;
 }
 
+.surface-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
 .hero-actions {
   margin-top: 24px;
 }
@@ -714,6 +721,37 @@ pre {
   color: var(--ink);
 }
 
+.surface-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.surface-note {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  border: var(--line);
+  border-radius: 22px;
+  box-shadow: var(--shadow-small);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.surface-note span {
+  color: rgba(255, 248, 239, 0.76);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.surface-note strong {
+  color: #fff8ef;
+  font-size: 0.96rem;
+  word-break: break-word;
+}
+
 .lede {
   max-width: 58ch;
   margin-top: 18px;
@@ -839,7 +877,8 @@ pre {
 @media (max-width: 860px) {
   .top-strip,
   .section-heading-row,
-  .section-header {
+  .section-header,
+  .surface-head {
     flex-direction: column;
     align-items: flex-start;
   }
@@ -892,6 +931,10 @@ pre {
   .hero-panel h1,
   .success-panel h1 {
     font-size: clamp(2.1rem, 11vw, 3.6rem);
+  }
+
+  .surface-meta-grid {
+    grid-template-columns: 1fr;
   }
 
   .stack-card,

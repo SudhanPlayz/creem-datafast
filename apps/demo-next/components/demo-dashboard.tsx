@@ -1,14 +1,17 @@
 "use client";
 
-import { startTransition, useEffect, useMemo, useState } from "react";
+import { startTransition, useEffect, useState } from "react";
 
-import type { DataFastTracking } from "@itzsudhan/creem-datafast";
 import {
-  appendDataFastTracking,
-  attributeCreemPaymentLink,
-} from "@itzsudhan/creem-datafast/client";
+  CreemCheckoutButton,
+  CreemDataFastProvider,
+  CreemPaymentLinkButton,
+  TrackingInspector,
+  TrackingStatusBadge,
+  useDataFastTracking,
+} from "@itzsudhan/creem-datafast/react";
 
-import { DATAFAST_PROXY_PATH, getDataFastClient, resolveDataFastDomain } from "@/lib/datafast";
+import { demoConfig } from "@/lib/config";
 
 type DebugEvent = {
   id: string;
@@ -23,46 +26,19 @@ type DemoDashboardProps = {
 };
 
 export function DemoDashboard({ directPaymentLink }: DemoDashboardProps) {
-  const [tracking, setTracking] = useState<DataFastTracking>({});
-  const [events, setEvents] = useState<DebugEvent[]>([]);
-  const [trackingStatus, setTrackingStatus] = useState<"initializing" | "ready" | "error">(
-    "initializing",
+  return (
+    <CreemDataFastProvider apiUrl="/api/events" websiteId={demoConfig.datafastWebsiteId}>
+      <DemoDashboardSurface directPaymentLink={directPaymentLink} />
+    </CreemDataFastProvider>
   );
-  const [trackingError, setTrackingError] = useState<string | null>(null);
-  const [datafastDomain, setDatafastDomain] = useState<string>("Detecting");
-  const [eventProxyUrl, setEventProxyUrl] = useState<string>(DATAFAST_PROXY_PATH);
+}
+
+function DemoDashboardSurface({ directPaymentLink }: DemoDashboardProps) {
+  const { error, eventApiUrl, resolvedDomain, status } = useDataFastTracking();
+  const [events, setEvents] = useState<DebugEvent[]>([]);
 
   useEffect(() => {
     let cancelled = false;
-
-    const initTracking = async () => {
-      try {
-        const client = await getDataFastClient();
-        const params = client?.getTrackingParams();
-        const resolvedDomain = resolveDataFastDomain(window.location.hostname);
-
-        if (!cancelled) {
-          setTracking({
-            datafastVisitorId: params?._df_vid,
-            datafastSessionId: params?._df_sid,
-          });
-          setDatafastDomain(resolvedDomain || "Unknown");
-          setEventProxyUrl(`${window.location.origin}${DATAFAST_PROXY_PATH}`);
-          setTrackingStatus("ready");
-        }
-      } catch (error) {
-        if (!cancelled) {
-          setTrackingStatus("error");
-          setDatafastDomain(resolveDataFastDomain(window.location.hostname) || "Unknown");
-          setEventProxyUrl(`${window.location.origin}${DATAFAST_PROXY_PATH}`);
-          setTrackingError(
-            error instanceof Error
-              ? error.message
-              : "The initial DataFast pageview could not be synchronized.",
-          );
-        }
-      }
-    };
 
     const load = async () => {
       const response = await fetch("/api/debug/events", { cache: "no-store" });
@@ -75,7 +51,6 @@ export function DemoDashboard({ directPaymentLink }: DemoDashboardProps) {
       }
     };
 
-    void initTracking();
     void load();
     const interval = window.setInterval(() => void load(), 4_000);
     return () => {
@@ -84,99 +59,68 @@ export function DemoDashboard({ directPaymentLink }: DemoDashboardProps) {
     };
   }, []);
 
-  const attributedPaymentLink = useMemo(
-    () => (directPaymentLink ? attributeCreemPaymentLink(directPaymentLink, tracking) : ""),
-    [directPaymentLink, tracking],
-  );
-  const checkoutAction = useMemo(
-    () => appendDataFastTracking("/api/checkout", tracking),
-    [tracking],
-  );
-  const canLaunchCheckout = trackingStatus === "ready";
-  const directLinkStatus =
-    trackingStatus === "error"
-      ? "Sync failed"
-      : trackingStatus === "ready" && attributedPaymentLink
-        ? "Ready"
-        : "Syncing";
-
   return (
     <div className="dashboard">
       <section className="panel hero-panel">
         <div className="eyebrow">Launch The Flow</div>
-        <h1>Run a real checkout and watch the attribution payload appear.</h1>
+        <div className="surface-head">
+          <h1>Run the packaged React layer against a live checkout.</h1>
+          <TrackingStatusBadge />
+        </div>
         <p className="lede">
-          This demo initializes the official DataFast SDK in the browser, stores visitor cookies on
-          the root domain, proxies analytics events through the same Next.js origin, injects the
-          live tracking IDs into Creem checkout metadata, and shows the exact payload forwarded back
-          to DataFast after the webhook lands.
+          This section now dogfoods <code>@itzsudhan/creem-datafast/react</code>. The provider
+          initializes the official DataFast SDK, flushes the first pageview through the same-origin
+          proxy, resolves live tracking IDs, and keeps the buttons locked until attribution is ready.
         </p>
         <div className="actions">
-          <form action={checkoutAction} method="POST">
-            <button className="primary-button" disabled={!canLaunchCheckout} type="submit">
-              Launch Server Checkout
-            </button>
-          </form>
-          <a
+          <CreemCheckoutButton action="/api/checkout" className="primary-button">
+            Launch Server Checkout
+          </CreemCheckoutButton>
+          <CreemPaymentLinkButton
             className="secondary-button"
-            href={attributedPaymentLink || "#"}
-            aria-disabled={!canLaunchCheckout || !attributedPaymentLink}
+            href={directPaymentLink || "https://creem.io"}
           >
             Open Direct Creem Link
-          </a>
+          </CreemPaymentLinkButton>
         </div>
-        {trackingError ? (
+        <div className="surface-meta-grid">
+          <article className="surface-note">
+            <span>Resolved Domain</span>
+            <strong>{resolvedDomain || "Unknown"}</strong>
+          </article>
+          <article className="surface-note">
+            <span>Event Proxy</span>
+            <strong>{eventApiUrl}</strong>
+          </article>
+          <article className="surface-note">
+            <span>Direct Link</span>
+            <strong>{directPaymentLink ? "Ready" : "Unavailable"}</strong>
+          </article>
+        </div>
+        {error ? (
           <p className="lede">
-            Tracking sync failed: {trackingError}. DataFast attribution will not be reliable until
-            the initial pageview can be sent.
+            Tracking sync failed: {error.message}. The React layer keeps checkout launches disabled
+            until a visitor can be attributed safely.
           </p>
         ) : null}
       </section>
 
       <section className="panel">
-        <div className="section-header">
-          <h2>Tracking Inspector</h2>
-          <span>Root-domain visitor cookies plus same-origin DataFast event proxy</span>
-        </div>
-        <div className="metric-grid">
-          <MetricCard
-            label="Visitor ID"
-            value={tracking.datafastVisitorId ?? "Missing"}
-            tone={tracking.datafastVisitorId ? "good" : "warn"}
-          />
-          <MetricCard
-            label="Session ID"
-            value={tracking.datafastSessionId ?? "Missing"}
-            tone={tracking.datafastSessionId ? "good" : "warn"}
-          />
-          <MetricCard
-            label="DataFast Domain"
-            value={datafastDomain}
-            tone={datafastDomain === "Detecting" ? "warn" : "good"}
-          />
-          <MetricCard
-            label="Event Proxy"
-            value={eventProxyUrl}
-            tone="good"
-          />
-          <MetricCard
-            label="Direct Link"
-            value={directLinkStatus}
-            tone={trackingStatus === "ready" && attributedPaymentLink ? "good" : "warn"}
-          />
-        </div>
+        <TrackingInspector subtitle="Official /react widgets reflecting live DataFast state from this demo instance" />
       </section>
 
       <section className="panel">
         <div className="section-header">
           <h2>Forwarded Payload Feed</h2>
-          <span>Recent checkout and webhook activity from this demo instance</span>
+          <span>
+            Package widgets above, demo-only payload feed below. Status: {status === "ready" ? "live" : "syncing"}
+          </span>
         </div>
         <div className="feed">
           {events.length === 0 ? (
             <div className="empty-state">
-              No events yet. Start a checkout and then trigger the Creem webhook to see the DataFast
-              payload appear here.
+              No events yet. Start a checkout and then trigger the CREEM webhook to see the
+              DataFast payment payload appear here.
             </div>
           ) : (
             events.map((event) => (
@@ -196,23 +140,6 @@ export function DemoDashboard({ directPaymentLink }: DemoDashboardProps) {
           )}
         </div>
       </section>
-    </div>
-  );
-}
-
-function MetricCard({
-  label,
-  value,
-  tone,
-}: {
-  label: string;
-  value: string;
-  tone: "good" | "warn";
-}) {
-  return (
-    <div className={`metric-card metric-card-${tone}`}>
-      <span>{label}</span>
-      <strong>{value}</strong>
     </div>
   );
 }

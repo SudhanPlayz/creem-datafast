@@ -17,6 +17,11 @@
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     },
+    "./react": {
+      "types": "./dist/react/index.d.ts",
+      "import": "./dist/react/index.js",
+      "require": "./dist/react/index.cjs"
+    },
     "./next": {
       "types": "./dist/next.d.ts",
       "import": "./dist/next.js",
@@ -41,13 +46,18 @@
     "SKILL.md"
   ],
   "scripts": {
-    "build": "tsup",
+    "build": "tsup && node ./scripts/postbuild-react-entry.cjs",
     "dev": "tsup --watch",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "creem": "^1.4.3"
+    "creem": "^1.4.3",
+    "datafast": "^2.1.2"
+  },
+  "peerDependencies": {
+    "react": "^18.3.0 || ^19.0.0",
+    "react-dom": "^18.3.0 || ^19.0.0"
   }
 }

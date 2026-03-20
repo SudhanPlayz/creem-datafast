@@ -12,8 +12,9 @@ This package wraps the official CREEM core TypeScript SDK, injects DataFast visi
 - Generic webhook API for any framework
 - Tiny Next.js helper for fast App Router integration
 - Browser helpers for hosted CREEM payment links and cross-origin checkout requests
+- Optional React attribution layer with provider, hooks, and neobrutalist widgets
 - Idempotency, retry logic, currency-aware amount conversion, and typed errors
-- `67` tests with `100%` statements, branches, functions, and lines
+- `80` tests with `99.84%` statements and lines, `99.14%` branches, and `100%` functions
 
 ## Install
 
@@ -100,6 +101,42 @@ These helpers are useful when the browser needs to:
 - preserve attribution across domains
 - append CREEM metadata to a direct hosted payment link
 
+## React Layer
+
+```tsx
+"use client";
+
+import {
+  CreemCheckoutButton,
+  CreemDataFastProvider,
+  CreemPaymentLinkButton,
+  TrackingInspector,
+} from "@itzsudhan/creem-datafast/react";
+
+export function CheckoutSurface() {
+  return (
+    <CreemDataFastProvider apiUrl="/api/events" websiteId={process.env.NEXT_PUBLIC_DATAFAST_WEBSITE_ID!}>
+      <TrackingInspector />
+      <CreemCheckoutButton action="/api/checkout">Launch Server Checkout</CreemCheckoutButton>
+      <CreemPaymentLinkButton href="https://creem.io/payment/prod_123">
+        Open Direct Creem Link
+      </CreemPaymentLinkButton>
+    </CreemDataFastProvider>
+  );
+}
+```
+
+The React bundle ships:
+
+- `CreemDataFastProvider`
+- `useDataFastTracking()`
+- `useAttributedCheckoutAction()`
+- `useAttributedPaymentLink()`
+- `CreemCheckoutButton`
+- `CreemPaymentLinkButton`
+- `TrackingStatusBadge`
+- `TrackingInspector`
+
 ## Forwarded Payment Shape
 
 The package maps CREEM webhook data into the DataFast Payments API format:
@@ -141,6 +178,7 @@ The package maps CREEM webhook data into the DataFast Payments API format:
 
 ### Subpaths
 
+- `@itzsudhan/creem-datafast/react`
 - `@itzsudhan/creem-datafast/next`
 - `@itzsudhan/creem-datafast/client`
 - `@itzsudhan/creem-datafast/idempotency/upstash`
@@ -163,6 +201,7 @@ npx @itzsudhan/creem-datafast skill --write ./SKILL.md
 
 - Repo: [github.com/SudhanPlayz/creem-datafast](https://github.com/SudhanPlayz/creem-datafast)
 - Demo: [creem-datafast.itzsudhan.com](https://creem-datafast.itzsudhan.com)
+- React guide: [docs/react.md](https://github.com/SudhanPlayz/creem-datafast/blob/master/docs/react.md)
 - Framework cookbook: [docs/frameworks/README.md](https://github.com/SudhanPlayz/creem-datafast/blob/master/docs/frameworks/README.md)
 - Testing and quality: [docs/testing-and-quality.md](https://github.com/SudhanPlayz/creem-datafast/blob/master/docs/testing-and-quality.md)
 - Troubleshooting: [docs/troubleshooting.md](https://github.com/SudhanPlayz/creem-datafast/blob/master/docs/troubleshooting.md)

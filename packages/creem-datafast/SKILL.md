@@ -19,6 +19,7 @@ npx @itzsudhan/creem-datafast skill --write ./SKILL.md
 ## Package Surface
 
 - Root: `createCreemDataFast`, typed errors, `MemoryIdempotencyStore`
+- React layer: `@itzsudhan/creem-datafast/react`
 - Next helper: `@itzsudhan/creem-datafast/next`
 - Browser helpers: `@itzsudhan/creem-datafast/client`
 - Production idempotency adapter: `@itzsudhan/creem-datafast/idempotency/upstash`
@@ -33,7 +34,8 @@ npx @itzsudhan/creem-datafast skill --write ./SKILL.md
    - Node/raw-body runtimes: `handleWebhook({ rawBody, headers })`
 5. Never JSON-parse a Creem webhook body before signature verification.
 6. If the app uses direct hosted Creem payment links, use `attributeCreemPaymentLink()` from the client bundle.
-7. If the app needs browser-side tracking capture, prefer the official DataFast SDK and pass the resolved IDs into server checkout creation.
+7. If the app is React or Next.js, prefer `@itzsudhan/creem-datafast/react` so the provider can initialize DataFast, flush the first pageview, and keep checkout buttons gated until tracking is ready.
+8. If the app needs a non-React browser path, use the official DataFast SDK and pass the resolved IDs into server checkout creation.
 
 ## Implementation Checklist
 
@@ -42,7 +44,8 @@ npx @itzsudhan/creem-datafast skill --write ./SKILL.md
 3. Update the checkout creation path to call `createCheckout(...)` instead of raw `creem.checkouts.create(...)`.
 4. Add a webhook route that preserves the raw request body and forwards supported Creem payment events to DataFast.
 5. If the site offers direct hosted Creem links, append `metadata[datafast_visitor_id]` and `metadata[datafast_session_id]` through the browser helper.
-6. Verify the forwarded DataFast payment payload includes `amount`, `currency`, `transaction_id`, and `datafast_visitor_id`.
+6. If the frontend is React-based, add `CreemDataFastProvider` and the shipped checkout/payment-link widgets before building custom browser glue.
+7. Verify the forwarded DataFast payment payload includes `amount`, `currency`, `transaction_id`, and `datafast_visitor_id`.
 
 ## Demo References
 

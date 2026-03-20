@@ -20,10 +20,10 @@ const runtimeBelt = [
 ];
 
 const qualityFacts = [
-  { label: "Tests", value: "67 passing" },
-  { label: "Coverage", value: "100%" },
-  { label: "Runtimes", value: "Node 18 / 20 / 22" },
-  { label: "Smoke", value: "Bun covered" },
+  { label: "Tests", value: "80 passing" },
+  { label: "Coverage", value: "99.84%" },
+  { label: "React Layer", value: "/react shipped" },
+  { label: "CI", value: "Node 18 / 20 / 22 + Bun" },
 ];
 
 const coreProofs = [
@@ -34,6 +34,10 @@ const coreProofs = [
   {
     label: "Metadata Injection",
     value: "Resolves DataFast visitor/session IDs and merges them into CREEM checkout metadata.",
+  },
+  {
+    label: "React Surface",
+    value: "Ships a provider, hooks, checkout button, payment-link button, status badge, and tracking inspector under `@itzsudhan/creem-datafast/react`.",
   },
   {
     label: "Same-Origin Browser Events",
@@ -145,8 +149,9 @@ export default async function HomePage() {
 
           <p className="masthead-copy">
             One package wraps the official CREEM SDK, resolves live DataFast visitor IDs, injects
-            them into checkout metadata, verifies webhooks, and forwards normalized payments back to
-            DataFast. The public demo lets you see the whole loop instead of guessing.
+            them into checkout metadata, verifies webhooks, forwards normalized payments back to
+            DataFast, and now ships an optional React layer for tracking-aware checkout UI. The
+            public demo lets you see the whole loop instead of guessing.
           </p>
 
           <div className="hero-actions">
@@ -173,7 +178,8 @@ export default async function HomePage() {
             <pre className="mono-block">{packageCommand}</pre>
             <p>
               Use one shared client for checkout creation, webhook verification, payment
-              forwarding, and hosted-link attribution.
+              forwarding, hosted-link attribution, plus the optional <code>/react</code> provider
+              and widgets.
             </p>
           </article>
 
@@ -204,7 +210,9 @@ export default async function HomePage() {
           <p>
             The hard part is not firing one request. The hard part is carrying visitor context from
             the browser into CREEM, then making sure the webhook forwarding path lands in DataFast
-            with the right amount, currency, transaction ID, and visitor attribution.
+            with the right amount, currency, transaction ID, and visitor attribution. The React
+            layer turns that flow into a reusable surface instead of a pile of app-local buttons and
+            SDK bootstrapping.
           </p>
           <div className="proof-strip">
             {coreProofs.map((item) => (
@@ -273,9 +281,10 @@ export default async function HomePage() {
           <div className="eyebrow">Interactive Demo</div>
           <h2>Run the flow, then inspect the exact payload that gets forwarded.</h2>
           <p>
-            The server checkout button uses the package wrapper directly. The direct-link button
-            uses the browser helper to append DataFast metadata onto a hosted CREEM payment link.
-            Everything below is live state from this demo instance.
+            The server checkout button still uses the package wrapper directly, but the interactive
+            surface now dogfoods <code>@itzsudhan/creem-datafast/react</code> for the provider,
+            status badge, direct-link button, and tracking inspector. Everything below is live state
+            from this demo instance.
           </p>
         </div>
         <DemoDashboard directPaymentLink={directPaymentLink} />

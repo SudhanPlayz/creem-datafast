@@ -5,7 +5,7 @@ export default defineConfig({
     coverage: {
       all: true,
       enabled: true,
-      include: ["src/**/*.ts"],
+      include: ["src/**/*.ts", "src/**/*.tsx"],
       exclude: ["src/types.ts"],
       reporter: ["text", "json-summary"],
       thresholds: {
@@ -16,6 +16,6 @@ export default defineConfig({
       },
     },
     environment: "node",
-    include: ["test/**/*.test.ts"],
+    include: ["test/**/*.test.ts", "test/**/*.test.tsx"],
   },
 });
