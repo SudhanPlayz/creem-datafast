@@ -81,15 +81,21 @@ export async function delay(ms: number): Promise<void> {
 }
 
 export async function hmacSha256Hex(secret: string, payload: string): Promise<string> {
-  const key = await crypto.subtle.importKey(
-    "raw",
-    textEncoder.encode(secret),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"],
-  );
-  const signature = await crypto.subtle.sign("HMAC", key, textEncoder.encode(payload));
-  return Array.from(new Uint8Array(signature), (byte) => byte.toString(16).padStart(2, "0")).join("");
+  const subtle = globalThis.crypto?.subtle;
+  if (subtle) {
+    const key = await subtle.importKey(
+      "raw",
+      textEncoder.encode(secret),
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["sign"],
+    );
+    const signature = await subtle.sign("HMAC", key, textEncoder.encode(payload));
+    return Array.from(new Uint8Array(signature), (byte) => byte.toString(16).padStart(2, "0")).join("");
+  }
+
+  const { createHmac } = await import("node:crypto");
+  return createHmac("sha256", secret).update(payload).digest("hex");
 }
 
 export function constantTimeEqualHex(left: string, right: string): boolean {

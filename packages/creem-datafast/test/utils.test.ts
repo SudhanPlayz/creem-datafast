@@ -91,6 +91,19 @@ describe("utils", () => {
     );
   });
 
+  it("falls back to node:crypto when Web Crypto is unavailable", async () => {
+    const originalCrypto = globalThis.crypto;
+    vi.stubGlobal("crypto", undefined);
+
+    try {
+      await expect(hmacSha256Hex("whsec_test_secret", '{"fallback":true}')).resolves.toBe(
+        signPayload('{"fallback":true}'),
+      );
+    } finally {
+      vi.stubGlobal("crypto", originalCrypto);
+    }
+  });
+
   it("compares normalized hex strings in constant time", () => {
     expect(constantTimeEqualHex(" AB12 ", "ab12")).toBe(true);
     expect(constantTimeEqualHex("ab12", "ab34")).toBe(false);
