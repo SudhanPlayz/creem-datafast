@@ -10,11 +10,10 @@ This monorepo contains the package, the public demo, the Express example, the fr
 - Repo: [github.com/SudhanPlayz/creem-datafast](https://github.com/SudhanPlayz/creem-datafast)
 - Hosted skill: [creem-datafast.itzsudhan.com/SKILL.md](https://creem-datafast.itzsudhan.com/SKILL.md)
 - Framework cookbook: [docs/frameworks/README.md](./docs/frameworks/README.md)
-- Requirements checklist: [docs/requirements-checklist.md](./docs/requirements-checklist.md)
 - Testing and quality: [docs/testing-and-quality.md](./docs/testing-and-quality.md)
 - Troubleshooting: [docs/troubleshooting.md](./docs/troubleshooting.md)
 
-## Why This Submission Stands Out
+## Highlights
 
 - Wraps the official [`creem`](https://docs.creem.io/code/sdks/typescript-core) core SDK directly, not `creem_io`
 - Generic-first API for any framework, with only one tiny Next.js helper export
@@ -35,18 +34,6 @@ This monorepo contains the package, the public demo, the Express example, the fr
 - Deduplicates webhook events and avoids double-attribution for subscription checkouts
 - Retries transient DataFast API failures with exponential backoff and jitter
 - Supports direct hosted CREEM payment links through browser helpers
-
-## Requirements Coverage
-
-Every listed challenge requirement is implemented and documented in [docs/requirements-checklist.md](./docs/requirements-checklist.md).
-
-Highlights:
-
-- `createCheckout()` auto-injects DataFast visitor/session tracking
-- `handleWebhook()` supports `checkout.completed` and `subscription.paid`
-- `handleWebhookRequest(request)` covers Fetch-style runtimes
-- `createNextWebhookHandler()` satisfies the framework adapter requirement
-- `appendDataFastTracking()` and `attributeCreemPaymentLink()` cover browser-side and direct-link flows
 
 ## Architecture
 
@@ -284,7 +271,7 @@ The public demo includes:
 - server checkout flow
 - direct hosted CREEM payment-link flow
 - webhook route powered by the package
-- visible forwarded-payload feed for judges
+- visible forwarded-payload feed for debugging and verification
 
 ### Express Example
 
@@ -353,7 +340,6 @@ pnpm build
 
 ## Docs Index
 
-- [docs/requirements-checklist.md](./docs/requirements-checklist.md)
 - [docs/frameworks/README.md](./docs/frameworks/README.md)
 - [docs/testing-and-quality.md](./docs/testing-and-quality.md)
 - [docs/troubleshooting.md](./docs/troubleshooting.md)

@@ -1,7 +1,5 @@
 # Testing And Quality
 
-The package is held to a higher quality bar than the challenge minimum.
-
 ## Current Snapshot
 
 - `67` passing tests
@@ -79,13 +77,3 @@ pnpm --filter @itzsudhan/creem-datafast test -- --coverage
 - package type definitions are verified in CI
 - example apps are typechecked as part of the monorepo
 - builds run from a clean workspace package state
-
-## Competitive Strength
-
-Compared with lightweight challenge entries, this repo combines:
-
-- stronger automated verification
-- broader runtime coverage through the generic API
-- richer public demo observability
-- more detailed docs and framework guidance
-- AI-agent integration support
