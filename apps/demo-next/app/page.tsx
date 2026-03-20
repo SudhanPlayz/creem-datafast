@@ -8,7 +8,7 @@ const packageCommand = "pnpm add @itzsudhan/creem-datafast";
 const frameworkCookbookUrl =
   "https://github.com/SudhanPlayz/creem-datafast/blob/master/docs/frameworks/README.md";
 
-const frameworkBelt = [
+const runtimeBelt = [
   "Next.js",
   "Express",
   "Fastify",
@@ -19,58 +19,88 @@ const frameworkBelt = [
   "NestJS",
 ];
 
-const proofTiles = [
+const qualityFacts = [
+  { label: "Tests", value: "67 passing" },
+  { label: "Coverage", value: "100%" },
+  { label: "Runtimes", value: "Node 18 / 20 / 22" },
+  { label: "Smoke", value: "Bun covered" },
+];
+
+const coreProofs = [
   {
-    label: "Core SDK",
-    value: "Official `creem` package wrapper",
+    label: "Official Core SDK",
+    value: "Built on top of the real `creem` package, not a wrapper around a wrapper.",
   },
   {
-    label: "Attribution",
-    value: "Root-domain DataFast IDs injected into checkout metadata",
+    label: "Metadata Injection",
+    value: "Resolves DataFast visitor/session IDs and merges them into CREEM checkout metadata.",
   },
   {
-    label: "Reliability",
-    value: "Same-origin `/api/events` proxy for browser analytics",
+    label: "Same-Origin Browser Events",
+    value: "The demo proxies DataFast browser events through Next.js to make attribution more reliable.",
   },
 ];
 
 const frameworkRecipes = [
   {
     name: "Next.js",
-    surface: "Official helper",
-    snippet: "export const POST = createNextWebhookHandler(() => client);",
+    runtime: "Official helper",
+    snippet: "export const POST = createNextWebhookHandler(client);",
   },
   {
     name: "Express",
-    surface: "Raw-body handler",
+    runtime: "Raw body",
     snippet: "await client.handleWebhook({ rawBody: req.body.toString('utf8'), headers: req.headers });",
   },
   {
     name: "Bun",
-    surface: "Fetch Request",
+    runtime: "Fetch Request",
     snippet: "const result = await client.handleWebhookRequest(request);",
   },
   {
     name: "Hono",
-    surface: "Fetch Request",
+    runtime: "Fetch Request",
     snippet: "const result = await client.handleWebhookRequest(c.req.raw);",
   },
   {
     name: "Fastify",
-    surface: "Raw-body handler",
+    runtime: "Raw body",
     snippet: "await client.handleWebhook({ rawBody: request.body as string, headers: request.headers });",
   },
   {
     name: "NestJS",
-    surface: "Raw-body handler",
+    runtime: "Raw body",
     snippet: "await client.handleWebhook({ rawBody: req.body.toString('utf8'), headers });",
   },
 ];
 
+const capabilityCards = [
+  {
+    title: "Zero-Glue Checkout Creation",
+    body: "The package resolves tracking from browser context or explicit input, then injects the final DataFast IDs before the checkout ever leaves your app.",
+    tone: "peach",
+  },
+  {
+    title: "Hosted CREEM Link Support",
+    body: "If you use direct CREEM payment links instead of server-created checkouts, the browser helper still appends the attribution metadata for you.",
+    tone: "mint",
+  },
+  {
+    title: "Production Runtime Guards",
+    body: "Webhook signatures, event dedupe, retry with backoff, currency-aware amount conversion, and optional transaction hydration are part of the default path.",
+    tone: "violet",
+  },
+  {
+    title: "Visible Proof Loop",
+    body: "The demo does not hide behind promises. It shows browser tracking, checkout metadata resolution, webhook processing, and the exact payment payload forwarded to DataFast.",
+    tone: "ink",
+  },
+];
+
 const workflow = [
-  "The browser SDK creates a real DataFast visitor and session, then flushes the opening pageview through the demo's same-origin proxy.",
-  "The package resolves tracking from explicit input, metadata, URL params, or cookies, then injects the final IDs into CREEM checkout metadata.",
-  "The webhook verifies CREEM signatures, deduplicates events, maps the payment into DataFast format, and forwards the exact payload shown below.",
+  "The DataFast SDK creates a real visitor and session, then flushes the first pageview through the demo's same-origin proxy.",
+  "Checkout creation injects the resolved DataFast IDs into CREEM metadata, whether the flow starts from your API route or a hosted payment link.",
+  "When CREEM sends the webhook, the package verifies the signature, normalizes the payment payload, and forwards the revenue event to DataFast.",
 ];
 
 export default async function HomePage() {
@@ -88,7 +118,7 @@ export default async function HomePage() {
             Frameworks
           </a>
           <a className="top-link" href="/SKILL.md">
-            Open SKILL.md
+            AI Skill
           </a>
           <a className="top-link" href="#live-demo">
             Live Demo
@@ -99,19 +129,27 @@ export default async function HomePage() {
         </nav>
       </header>
 
-      <section className="hero-stage">
-        <div className="hero-poster">
-          <div className="hero-badge-row">
-            <span className="eyebrow">Generic-First Package + Demo</span>
-            <span className="micro-pill">Core CREEM SDK</span>
-            <span className="micro-pill">DataFast Event Proxy</span>
+      <section className="masthead-grid">
+        <article className="masthead-panel">
+          <div className="masthead-badges">
+            <span className="eyebrow">Neobrutalist CREEM Demo</span>
+            <span className="sticker-tag">Official Core SDK</span>
+            <span className="sticker-tag">Public Payload Feed</span>
           </div>
-          <h1>Ship CREEM revenue attribution without writing glue code.</h1>
-          <p className="hero-lede">
-            One package wraps the official CREEM core SDK, captures live DataFast visitor IDs,
-            injects them into checkout metadata, verifies webhooks, and forwards normalized revenue
-            back to DataFast. The demo proves the whole thing in public, with exact payloads.
+
+          <h1 className="masthead-title">
+            <span>Revenue attribution</span>
+            <span>that actually</span>
+            <span>shows every</span>
+            <span>handoff.</span>
+          </h1>
+
+          <p className="masthead-copy">
+            One package wraps the official CREEM SDK, resolves live DataFast visitor IDs, injects
+            them into checkout metadata, verifies webhooks, and forwards normalized payments back to
+            DataFast. The public demo lets you see the whole loop instead of guessing.
           </p>
+
           <div className="hero-actions">
             <a className="primary-button" href="#live-demo">
               Launch Live Demo
@@ -121,106 +159,106 @@ export default async function HomePage() {
             </a>
           </div>
 
-          <div className="framework-belt" aria-label="Supported integrations">
-            {frameworkBelt.map((framework) => (
-              <span className="framework-chip" key={framework}>
-                {framework}
+          <div className="runtime-ribbon" aria-label="Supported runtimes">
+            {runtimeBelt.map((runtime) => (
+              <span className="runtime-chip" key={runtime}>
+                {runtime}
               </span>
             ))}
           </div>
+        </article>
 
-          <div className="hero-proof-grid">
-            {proofTiles.map((tile) => (
-              <article className="proof-tile" key={tile.label}>
-                <span>{tile.label}</span>
-                <strong>{tile.value}</strong>
-              </article>
-            ))}
-          </div>
-        </div>
-
-        <aside className="hero-stack">
-          <article className="hero-snippet hero-snippet-cream">
+        <aside className="masthead-stack">
+          <article className="stack-card stack-card-install">
             <div className="card-kicker">Install The Package</div>
             <pre className="mono-block">{packageCommand}</pre>
             <p>
-              Wrap checkout creation on the server, keep the browser helper for direct payment
-              links, and let the webhook forward revenue automatically.
+              Use one shared client for checkout creation, webhook verification, payment
+              forwarding, and hosted-link attribution.
             </p>
           </article>
 
-          <article className="hero-snippet hero-snippet-peach">
-            <div className="card-kicker">Install The Skill</div>
-            <pre className="mono-block">{skillCommand}</pre>
-            <p>
-              Agents can generate or sync the canonical skill file locally after npm publish, or
-              read the hosted file directly from this demo.
-            </p>
+          <article className="stack-card stack-card-quality">
+            <div className="card-kicker">Quality Bar</div>
+            <div className="punch-grid">
+              {qualityFacts.map((fact) => (
+                <div className="punch-card" key={fact.label}>
+                  <span>{fact.label}</span>
+                  <strong>{fact.value}</strong>
+                </div>
+              ))}
+            </div>
           </article>
 
-          <article className="hero-snippet hero-snippet-violet">
-            <div className="card-kicker">Prompt Any Agent</div>
+          <article className="stack-card stack-card-agent">
+            <div className="card-kicker">Agent Mode</div>
             <pre className="mono-block">{agentPrompt}</pre>
-            <p>
-              The landing page, public skill file, and repo are aligned so agents do not need to
-              reverse-engineer the flow.
-            </p>
+            <p className="stack-mini-command">{skillCommand}</p>
           </article>
         </aside>
       </section>
 
-      <section className="framework-shell" id="frameworks">
-        <div className="section-heading section-heading-row">
-          <div>
-            <div className="eyebrow">Framework Recipes</div>
-            <h2>One API surface, shown across Bun, Express, Fastify, Hono, Next, and Nest.</h2>
-          </div>
-          <a className="secondary-button" href={frameworkCookbookUrl}>
-            Read Full Cookbook
-          </a>
-        </div>
-        <div className="framework-grid">
-          {frameworkRecipes.map((recipe) => (
-            <article className="framework-card" key={recipe.name}>
-              <div className="framework-meta">
-                <span>{recipe.surface}</span>
-                <strong>{recipe.name}</strong>
-              </div>
-              <pre className="snippet-block">{recipe.snippet}</pre>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="agent-surface">
-        <div className="surface-copy">
-          <div className="eyebrow">Agent Onboarding</div>
-          <h2>Hosted skill file for agents. Generic primitives for every runtime.</h2>
+      <section className="split-showcase">
+        <article className="manifesto-card">
+          <div className="eyebrow">What Makes It Tight</div>
+          <h2>Not just a webhook helper. A full attribution path that closes the loop.</h2>
           <p>
-            The package only ships one tiny Next.js helper. Everything else is generic:{" "}
-            <code>{"handleWebhookRequest(request)"}</code> for Fetch-style runtimes and{" "}
-            <code>{"handleWebhook({ rawBody, headers })"}</code> for raw-body Node servers.
+            The hard part is not firing one request. The hard part is carrying visitor context from
+            the browser into CREEM, then making sure the webhook forwarding path lands in DataFast
+            with the right amount, currency, transaction ID, and visitor attribution.
           </p>
-        </div>
-        <div className="surface-actions">
-          <a className="secondary-button" href="/SKILL.md">
-            Open Hosted Skill
-          </a>
-          <a className="secondary-button" href="https://github.com/SudhanPlayz/creem-datafast">
-            View Repository
-          </a>
-        </div>
+          <div className="proof-strip">
+            {coreProofs.map((item) => (
+              <article className="proof-strip-card" key={item.label}>
+                <span>{item.label}</span>
+                <strong>{item.value}</strong>
+              </article>
+            ))}
+          </div>
+        </article>
+
+        <section className="framework-shell" id="frameworks">
+          <div className="section-heading section-heading-row">
+            <div>
+              <div className="eyebrow">Framework Lab</div>
+              <h2>One client, shown across the runtimes people actually use.</h2>
+            </div>
+            <a className="secondary-button" href={frameworkCookbookUrl}>
+              Read Full Cookbook
+            </a>
+          </div>
+          <div className="framework-grid">
+            {frameworkRecipes.map((recipe) => (
+              <article className="framework-card" key={recipe.name}>
+                <div className="framework-meta">
+                  <span>{recipe.runtime}</span>
+                  <strong>{recipe.name}</strong>
+                </div>
+                <pre className="snippet-block">{recipe.snippet}</pre>
+              </article>
+            ))}
+          </div>
+        </section>
       </section>
 
-      <section className="workflow-shell">
+      <section className="capability-wall">
+        {capabilityCards.map((card) => (
+          <article className={`capability-card capability-card-${card.tone}`} key={card.title}>
+            <h2>{card.title}</h2>
+            <p>{card.body}</p>
+          </article>
+        ))}
+      </section>
+
+      <section className="process-shell">
         <div className="section-heading">
-          <div className="eyebrow">What The Package Owns</div>
-          <h2>Three steps from browser visit to attributed CREEM revenue.</h2>
+          <div className="eyebrow">How The Loop Closes</div>
+          <h2>Three moves from first pageview to attributed CREEM revenue.</h2>
         </div>
-        <div className="workflow-grid">
+        <div className="process-grid">
           {workflow.map((step, index) => (
-            <article className="workflow-card" key={step}>
-              <span className="workflow-index">0{index + 1}</span>
+            <article className="process-card" key={step}>
+              <span className="process-index">0{index + 1}</span>
               <p>{step}</p>
             </article>
           ))}
@@ -228,13 +266,17 @@ export default async function HomePage() {
       </section>
 
       <section className="demo-shell" id="live-demo">
+        <div className="demo-banner">
+          <span>Live Sandbox</span>
+          <strong>Landing page → checkout → webhook → DataFast payload</strong>
+        </div>
         <div className="demo-intro">
-          <div className="eyebrow">Live Demo</div>
-          <h2>Landing page, checkout, webhook, and the exact attribution payload.</h2>
+          <div className="eyebrow">Interactive Demo</div>
+          <h2>Run the flow, then inspect the exact payload that gets forwarded.</h2>
           <p>
             The server checkout button uses the package wrapper directly. The direct-link button
             uses the browser helper to append DataFast metadata onto a hosted CREEM payment link.
-            The feed below shows the exact payload this demo forwards after the webhook lands.
+            Everything below is live state from this demo instance.
           </p>
         </div>
         <DemoDashboard directPaymentLink={directPaymentLink} />
