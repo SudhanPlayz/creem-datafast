@@ -15,8 +15,9 @@ const bodyFont = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "CREEM × DataFast Demo",
-  description: "End-to-end demo for @itzsudhan/creem-datafast.",
+  title: "CREEM × DataFast Skill Demo",
+  description:
+    "AI-native CREEM revenue attribution for DataFast, with a public SKILL.md, live demo flow, and generic TypeScript package.",
 };
 
 export default function RootLayout({

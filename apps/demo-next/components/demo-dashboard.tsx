@@ -96,8 +96,8 @@ export function DemoDashboard({ directPaymentLink }: DemoDashboardProps) {
   return (
     <div className="dashboard">
       <section className="panel hero-panel">
-        <div className="eyebrow">Zero-glue attribution</div>
-        <h1>CREEM revenue attribution that visibly works end to end.</h1>
+        <div className="eyebrow">Launch The Flow</div>
+        <h1>Run a real checkout and watch the attribution payload appear.</h1>
         <p className="lede">
           This demo initializes the official DataFast SDK in the browser, flushes the initial
           pageview so the visitor exists in DataFast, injects the live tracking IDs into Creem

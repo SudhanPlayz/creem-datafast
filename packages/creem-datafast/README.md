@@ -8,6 +8,20 @@ Generic-first revenue attribution for CREEM + DataFast.
 pnpm add @itzsudhan/creem-datafast
 ```
 
+## AI Agent Skill
+
+Prompt any coding agent with:
+
+```text
+Read https://creem-datafast.itzsudhan.com/SKILL.md and integrate @itzsudhan/creem-datafast into this app.
+```
+
+Or print the packaged skill locally:
+
+```bash
+npx @itzsudhan/creem-datafast skill --write ./SKILL.md
+```
+
 ## Core API
 
 ```ts
