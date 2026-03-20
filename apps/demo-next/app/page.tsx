@@ -132,8 +132,7 @@ export default async function HomePage() {
       <section className="masthead-grid">
         <article className="masthead-panel">
           <div className="masthead-badges">
-            <span className="eyebrow">Neobrutalist CREEM Demo</span>
-            <span className="sticker-tag">Official Core SDK</span>
+            <span className="eyebrow">Official Core SDK</span>
             <span className="sticker-tag">Public Payload Feed</span>
           </div>
 
