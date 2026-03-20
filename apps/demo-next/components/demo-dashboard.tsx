@@ -8,7 +8,7 @@ import {
   attributeCreemPaymentLink,
 } from "@itzsudhan/creem-datafast/client";
 
-import { getDataFastClient } from "@/lib/datafast";
+import { DATAFAST_PROXY_PATH, getDataFastClient, resolveDataFastDomain } from "@/lib/datafast";
 
 type DebugEvent = {
   id: string;
@@ -29,6 +29,8 @@ export function DemoDashboard({ directPaymentLink }: DemoDashboardProps) {
     "initializing",
   );
   const [trackingError, setTrackingError] = useState<string | null>(null);
+  const [datafastDomain, setDatafastDomain] = useState<string>("Detecting");
+  const [eventProxyUrl, setEventProxyUrl] = useState<string>(DATAFAST_PROXY_PATH);
 
   useEffect(() => {
     let cancelled = false;
@@ -37,17 +39,22 @@ export function DemoDashboard({ directPaymentLink }: DemoDashboardProps) {
       try {
         const client = await getDataFastClient();
         const params = client?.getTrackingParams();
+        const resolvedDomain = resolveDataFastDomain(window.location.hostname);
 
         if (!cancelled) {
           setTracking({
             datafastVisitorId: params?._df_vid,
             datafastSessionId: params?._df_sid,
           });
+          setDatafastDomain(resolvedDomain || "Unknown");
+          setEventProxyUrl(`${window.location.origin}${DATAFAST_PROXY_PATH}`);
           setTrackingStatus("ready");
         }
       } catch (error) {
         if (!cancelled) {
           setTrackingStatus("error");
+          setDatafastDomain(resolveDataFastDomain(window.location.hostname) || "Unknown");
+          setEventProxyUrl(`${window.location.origin}${DATAFAST_PROXY_PATH}`);
           setTrackingError(
             error instanceof Error
               ? error.message
@@ -99,10 +106,10 @@ export function DemoDashboard({ directPaymentLink }: DemoDashboardProps) {
         <div className="eyebrow">Launch The Flow</div>
         <h1>Run a real checkout and watch the attribution payload appear.</h1>
         <p className="lede">
-          This demo initializes the official DataFast SDK in the browser, flushes the initial
-          pageview so the visitor exists in DataFast, injects the live tracking IDs into Creem
-          checkout metadata, and shows the exact payload forwarded back to DataFast after the
-          webhook lands.
+          This demo initializes the official DataFast SDK in the browser, stores visitor cookies on
+          the root domain, proxies analytics events through the same Next.js origin, injects the
+          live tracking IDs into Creem checkout metadata, and shows the exact payload forwarded back
+          to DataFast after the webhook lands.
         </p>
         <div className="actions">
           <form action={checkoutAction} method="POST">
@@ -129,7 +136,7 @@ export function DemoDashboard({ directPaymentLink }: DemoDashboardProps) {
       <section className="panel">
         <div className="section-header">
           <h2>Tracking Inspector</h2>
-          <span>DataFast SDK tracking and first-visit sync status</span>
+          <span>Root-domain visitor cookies plus same-origin DataFast event proxy</span>
         </div>
         <div className="metric-grid">
           <MetricCard
@@ -141,6 +148,16 @@ export function DemoDashboard({ directPaymentLink }: DemoDashboardProps) {
             label="Session ID"
             value={tracking.datafastSessionId ?? "Missing"}
             tone={tracking.datafastSessionId ? "good" : "warn"}
+          />
+          <MetricCard
+            label="DataFast Domain"
+            value={datafastDomain}
+            tone={datafastDomain === "Detecting" ? "warn" : "good"}
+          />
+          <MetricCard
+            label="Event Proxy"
+            value={eventProxyUrl}
+            tone="good"
           />
           <MetricCard
             label="Direct Link"
