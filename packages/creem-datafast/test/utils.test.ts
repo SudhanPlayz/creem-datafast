@@ -91,6 +91,27 @@ describe("utils", () => {
     );
   });
 
+  it("uses Web Crypto when available", async () => {
+    const importKey = vi.fn().mockResolvedValue("crypto-key");
+    const sign = vi.fn().mockResolvedValue(new Uint8Array([0xab, 0xcd, 0xef]).buffer);
+    const originalCrypto = globalThis.crypto;
+
+    vi.stubGlobal("crypto", {
+      subtle: {
+        importKey,
+        sign,
+      },
+    } as unknown as Crypto);
+
+    try {
+      await expect(hmacSha256Hex("whsec_test_secret", '{"web":true}')).resolves.toBe("abcdef");
+      expect(importKey).toHaveBeenCalledOnce();
+      expect(sign).toHaveBeenCalledOnce();
+    } finally {
+      vi.stubGlobal("crypto", originalCrypto);
+    }
+  });
+
   it("falls back to node:crypto when Web Crypto is unavailable", async () => {
     const originalCrypto = globalThis.crypto;
     vi.stubGlobal("crypto", undefined);
