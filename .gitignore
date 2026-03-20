@@ -1,0 +1,10 @@
+node_modules
+.pnpm-store
+.next
+dist
+coverage
+*.log
+.env
+.env.*
+!.env.example
+creem-1.4.3.tgz
