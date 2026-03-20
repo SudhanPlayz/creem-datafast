@@ -1,6 +1,19 @@
 # `@itzsudhan/creem-datafast`
 
-Generic-first revenue attribution for CREEM + DataFast.
+Generic-first revenue attribution bridge between CREEM and DataFast.
+
+This package wraps the official CREEM core TypeScript SDK, injects DataFast visitor attribution into checkout metadata, verifies CREEM webhooks, and forwards normalized payment events to DataFast with production-minded defaults.
+
+## Why Use It
+
+- Official `creem` core SDK wrapper, not `creem_io`
+- Auto-captures `datafast_visitor_id` and `datafast_session_id`
+- Supports `checkout.completed`, `subscription.paid`, and `refund.created`
+- Generic webhook API for any framework
+- Tiny Next.js helper for fast App Router integration
+- Browser helpers for hosted CREEM payment links and cross-origin checkout requests
+- Idempotency, retry logic, currency-aware amount conversion, and typed errors
+- `67` tests with `100%` statements, branches, functions, and lines
 
 ## Install
 
@@ -8,32 +21,20 @@ Generic-first revenue attribution for CREEM + DataFast.
 pnpm add @itzsudhan/creem-datafast
 ```
 
-## AI Agent Skill
-
-Prompt any coding agent with:
-
-```text
-Read https://creem-datafast.itzsudhan.com/SKILL.md and integrate @itzsudhan/creem-datafast into this app.
-```
-
-Or print the packaged skill locally:
-
-```bash
-npx @itzsudhan/creem-datafast skill --write ./SKILL.md
-```
-
-## Core API
+## Core Setup
 
 ```ts
 import { createCreemDataFast } from "@itzsudhan/creem-datafast";
 
-const creemDataFast = createCreemDataFast({
+export const creemDataFast = createCreemDataFast({
   creemApiKey: process.env.CREEM_API_KEY!,
   creemWebhookSecret: process.env.CREEM_WEBHOOK_SECRET!,
   datafastApiKey: process.env.DATAFAST_API_KEY!,
   testMode: true,
 });
 ```
+
+## Create Checkouts
 
 ```ts
 const checkout = await creemDataFast.createCheckout(
@@ -45,6 +46,25 @@ const checkout = await creemDataFast.createCheckout(
 );
 ```
 
+Tracking resolution order:
+
+1. Explicit `tracking`
+2. Existing `metadata.datafast_*`
+3. Query params `datafast_*`
+4. Query params `_df_vid` / `_df_sid`
+5. Cookies `datafast_visitor_id` / `datafast_session_id`
+
+## Verify Webhooks
+
+### Generic Fetch-Style Runtimes
+
+```ts
+const result = await creemDataFast.handleWebhookRequest(request);
+return new Response(result.ignored ? "Ignored" : "OK", { status: 200 });
+```
+
+### Generic Raw-Body Runtimes
+
 ```ts
 const result = await creemDataFast.handleWebhook({
   rawBody,
@@ -52,11 +72,101 @@ const result = await creemDataFast.handleWebhook({
 });
 ```
 
+### Next.js Helper
+
+```ts
+import { createNextWebhookHandler } from "@itzsudhan/creem-datafast/next";
+
+export const POST = createNextWebhookHandler(creemDataFast);
+```
+
+## Browser Helpers
+
+```ts
+import {
+  appendDataFastTracking,
+  attributeCreemPaymentLink,
+  getDataFastTracking,
+} from "@itzsudhan/creem-datafast/client";
+
+const tracking = getDataFastTracking();
+const checkoutApiUrl = appendDataFastTracking("/api/checkout", tracking);
+const directPaymentLink = attributeCreemPaymentLink("https://creem.io/payment/prod_123", tracking);
+```
+
+These helpers are useful when the browser needs to:
+
+- call a checkout creation API route with live DataFast IDs
+- preserve attribution across domains
+- append CREEM metadata to a direct hosted payment link
+
+## Forwarded Payment Shape
+
+The package maps CREEM webhook data into the DataFast Payments API format:
+
+```ts
+{
+  amount: 40,
+  currency: "USD",
+  transaction_id: "tran_123",
+  datafast_visitor_id: "visitor_uuid",
+  email: "buyer@example.com",
+  name: "Buyer Name",
+  customer_id: "cust_123",
+  renewal: false,
+  refunded: false,
+  timestamp: "2026-03-20T06:19:21.868Z"
+}
+```
+
+## Production Defaults
+
+- Webhook deduplication with `MemoryIdempotencyStore`
+- Upstash Redis adapter at `@itzsudhan/creem-datafast/idempotency/upstash`
+- Retries with exponential backoff and jitter
+- Currency-aware conversion for zero-decimal and three-decimal currencies
+- Subscription payment hydration through the CREEM API when enabled
+- Typed request errors with retry metadata
+
 ## Exports
 
-- `@itzsudhan/creem-datafast`
+### Root
+
+- `createCreemDataFast`
+- `InvalidCreemSignatureError`
+- `MissingTrackingError`
+- `DataFastRequestError`
+- `UnsupportedEventError`
+- `MemoryIdempotencyStore`
+
+### Subpaths
+
 - `@itzsudhan/creem-datafast/next`
 - `@itzsudhan/creem-datafast/client`
 - `@itzsudhan/creem-datafast/idempotency/upstash`
 
-See the repository README for the full Next.js demo, Express example, and framework cookbook.
+## AI Agent Skill
+
+Hosted skill prompt:
+
+```text
+Read https://creem-datafast.itzsudhan.com/SKILL.md and integrate @itzsudhan/creem-datafast into this app.
+```
+
+Local skill install:
+
+```bash
+npx @itzsudhan/creem-datafast skill --write ./SKILL.md
+```
+
+## Full Documentation
+
+- Repo: [github.com/SudhanPlayz/creem-datafast](https://github.com/SudhanPlayz/creem-datafast)
+- Demo: [creem-datafast.itzsudhan.com](https://creem-datafast.itzsudhan.com)
+- Framework cookbook: [docs/frameworks/README.md](https://github.com/SudhanPlayz/creem-datafast/blob/master/docs/frameworks/README.md)
+- Testing and quality: [docs/testing-and-quality.md](https://github.com/SudhanPlayz/creem-datafast/blob/master/docs/testing-and-quality.md)
+- Troubleshooting: [docs/troubleshooting.md](https://github.com/SudhanPlayz/creem-datafast/blob/master/docs/troubleshooting.md)
+
+## License
+
+MIT
