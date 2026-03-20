@@ -172,7 +172,7 @@ The demo includes:
 - landing page with the DataFast script
 - tracking inspector for browser cookies
 - server-created checkout flow
-- direct Creem payment-link flow
+- direct Creem payment-link flow derived automatically from `CREEM_PRODUCT_ID`
 - webhook route powered by the package
 - live feed of forwarded DataFast payloads
 

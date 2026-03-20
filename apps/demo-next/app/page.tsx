@@ -1,7 +1,9 @@
 import { DemoDashboard } from "@/components/demo-dashboard";
-import { demoConfig } from "@/lib/config";
+import { getDirectPaymentLink } from "@/lib/direct-payment-link";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const directPaymentLink = await getDirectPaymentLink();
+
   return (
     <main className="page-shell">
       <div className="page-grid">
@@ -18,7 +20,7 @@ export default function HomePage() {
             <li>Shows the exact DataFast payment payload after webhook processing</li>
           </ul>
         </aside>
-        <DemoDashboard directPaymentLink={demoConfig.creemPaymentLink} />
+        <DemoDashboard directPaymentLink={directPaymentLink} />
       </div>
     </main>
   );

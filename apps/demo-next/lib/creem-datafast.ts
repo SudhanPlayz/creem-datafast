@@ -1,6 +1,6 @@
 import { createCreemDataFast } from "@itzsudhan/creem-datafast";
 
-import { demoConfig } from "./config";
+import { getCreemCoreClient } from "./creem-core";
 import { pushDebugEvent } from "./debug-store";
 
 let cachedClient: ReturnType<typeof createCreemDataFast> | undefined;
@@ -23,7 +23,7 @@ export function getCreemDataFast() {
   }
 
   cachedClient = createCreemDataFast({
-    creemApiKey: process.env.CREEM_API_KEY,
+    creemClient: getCreemCoreClient(),
     creemWebhookSecret: process.env.CREEM_WEBHOOK_SECRET!,
     datafastApiKey: process.env.DATAFAST_API_KEY!,
     testMode: true,
@@ -32,7 +32,7 @@ export function getCreemDataFast() {
       const url = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
       const body = typeof init?.body === "string" ? safelyParse(init.body) : undefined;
 
-      if (url.startsWith(demoConfig.appBaseUrl) || url.includes("/api/v1/payments")) {
+      if (url.includes("/api/v1/payments")) {
         pushDebugEvent({
           kind: "forward",
           title: "Forwarding payment to DataFast",
