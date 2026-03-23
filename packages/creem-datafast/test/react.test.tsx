@@ -272,6 +272,12 @@ describe("react attribution layer", () => {
     expect(screen.getByTestId("payment-link").textContent).toContain(
       "metadata%5Bdatafast_session_id%5D=sess_live",
     );
+    expect(screen.getByTestId("payment-link-override").textContent).toContain(
+      "metadata%5Bdatafast_visitor_id%5D=override_link_visitor",
+    );
+    expect(screen.getByTestId("payment-link-override").textContent).toContain(
+      "metadata%5Bdatafast_session_id%5D=override_link_session",
+    );
     expect(screen.getByTestId("resolved-domain").textContent).toBe("itzsudhan.com");
   });
 
@@ -416,6 +422,59 @@ describe("react attribution layer", () => {
     expect(screen.getByText("http://localhost/proxy/events")).toBeTruthy();
   });
 
+  it("normalizes blank hostnames back to localhost", async () => {
+    const client = createMockClient({
+      visitorId: "vis_blank_host",
+      sessionId: "sess_blank_host",
+    });
+    initDataFastMock.mockResolvedValueOnce(client);
+    vi.stubGlobal("location", {
+      hostname: " ",
+      origin: "http://localhost",
+    });
+
+    render(
+      <CreemDataFastProvider websiteId="dfid_blank_host">
+        <TrackingInspector />
+      </CreemDataFastProvider>,
+    );
+
+    await screen.findByText("vis_blank_host");
+
+    expect(initDataFastMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        domain: "localhost",
+      }),
+    );
+  });
+
+  it("passes through hostname allowlists and custom localhost behavior", async () => {
+    const client = createMockClient({
+      visitorId: "vis_allowlist",
+      sessionId: "sess_allowlist",
+    });
+    initDataFastMock.mockResolvedValueOnce(client);
+
+    render(
+      <CreemDataFastProvider
+        allowLocalhost={false}
+        allowedHostnames={["creem-datafast.itzsudhan.com", "preview.itzsudhan.com"]}
+        websiteId="dfid_allowlist"
+      >
+        <TrackingInspector />
+      </CreemDataFastProvider>,
+    );
+
+    await screen.findByText("vis_allowlist");
+
+    expect(initDataFastMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        allowLocalhost: false,
+        allowedHostnames: ["creem-datafast.itzsudhan.com", "preview.itzsudhan.com"],
+      }),
+    );
+  });
+
   it("ignores late init failures after the provider unmounts", async () => {
     const deferred = createDeferred<ReturnType<typeof createMockClient>>();
     void deferred.promise.catch(() => undefined);
@@ -434,6 +493,28 @@ describe("react attribution layer", () => {
       expect(initDataFastMock).toHaveBeenCalledOnce();
     });
   });
+
+  it("ignores late init success after the provider unmounts", async () => {
+    const client = createMockClient({
+      visitorId: "vis_unmount_success",
+      sessionId: "sess_unmount_success",
+    });
+    const deferred = createDeferred<typeof client>();
+    initDataFastMock.mockReturnValueOnce(deferred.promise);
+
+    const view = render(
+      <CreemDataFastProvider websiteId="dfid_unmount_success">
+        <TrackingInspector />
+      </CreemDataFastProvider>,
+    );
+
+    view.unmount();
+    deferred.resolve(client);
+
+    await waitFor(() => {
+      expect(client.getTrackingParams).toHaveBeenCalledOnce();
+    });
+  });
 });
 
 const DEFAULT_EVENTS_URL = "https://datafa.st/api/events";
@@ -446,12 +527,19 @@ function HookProbe() {
     },
   });
   const link = useAttributedPaymentLink("https://creem.io/payment/prod_123");
+  const overrideLink = useAttributedPaymentLink("https://creem.io/payment/prod_456", {
+    tracking: {
+      datafastVisitorId: "override_link_visitor",
+      datafastSessionId: "override_link_session",
+    },
+  });
   const context = useDataFastTracking();
 
   return (
     <div>
       <output data-testid="checkout-action">{action}</output>
       <output data-testid="payment-link">{link}</output>
+      <output data-testid="payment-link-override">{overrideLink}</output>
       <output data-testid="resolved-domain">{context.resolvedDomain}</output>
     </div>
   );

@@ -20,8 +20,8 @@ const runtimeBelt = [
 ];
 
 const qualityFacts = [
-  { label: "Tests", value: "80 passing" },
-  { label: "Coverage", value: "99.84%" },
+  { label: "Tests", value: "83 passing" },
+  { label: "Coverage", value: "100%" },
   { label: "React Layer", value: "/react shipped" },
   { label: "CI", value: "Node 18 / 20 / 22 + Bun" },
 ];

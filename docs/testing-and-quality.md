@@ -2,11 +2,11 @@
 
 ## Current Snapshot
 
-- `80` passing tests
-- `99.84%` statements
-- `99.14%` branches
+- `83` passing tests
+- `100%` statements
+- `100%` branches
 - `100%` functions
-- `99.84%` lines
+- `100%` lines
 
 ## Test Categories
 

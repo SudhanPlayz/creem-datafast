@@ -22,7 +22,7 @@ This monorepo contains the package, the public demo, the Express example, the fr
 - Root-domain DataFast tracking plus same-origin event proxy support for subdomain-safe attribution
 - Hosted `SKILL.md` and local `npx` installer for AI-agent onboarding
 - Refund support, idempotency, currency-aware amounts, retry logic, and transaction hydration
-- `80` passing tests with `99.84%` statements and lines, `99.14%` branches, and `100%` functions
+- `83` passing tests with `100%` statements, branches, functions, and lines
 - CI on push and PR with Node `18`, `20`, `22`, plus Bun smoke coverage
 
 ## What The Package Does
@@ -351,11 +351,11 @@ npx @itzsudhan/creem-datafast skill --write ./SKILL.md
 
 Current quality bar:
 
-- `80` passing tests
-- `99.84%` statements
-- `99.14%` branches
+- `83` passing tests
+- `100%` statements
+- `100%` branches
 - `100%` functions
-- `99.84%` lines
+- `100%` lines
 - CI on `push`, `pull_request`, and manual dispatch
 - Validation on Node `20`
 - Test matrix on Node `18`, `20`, `22`

@@ -14,7 +14,7 @@ This package wraps the official CREEM core TypeScript SDK, injects DataFast visi
 - Browser helpers for hosted CREEM payment links and cross-origin checkout requests
 - Optional React attribution layer with provider, hooks, and neobrutalist widgets
 - Idempotency, retry logic, currency-aware amount conversion, and typed errors
-- `80` tests with `99.84%` statements and lines, `99.14%` branches, and `100%` functions
+- `83` tests with `100%` statements, branches, functions, and lines
 
 ## Install
 
