@@ -1,7 +1,7 @@
 import { Creem } from "creem";
 import type { CreateCheckoutRequest } from "creem/models/components";
 
-import { forwardDataFastPayment } from "./datafast";
+import { forwardDataFastPayment, probeDataFastHealth } from "./datafast";
 import {
   InvalidCreemSignatureError,
   MissingTrackingError,
@@ -14,12 +14,14 @@ import type {
   CreateCreemDataFastOptions,
   CreemDataFastClient,
   DataFastPayment,
+  HandleWebhookResult,
   HeadersLike,
 } from "./types";
 import { mapWebhookToPayment } from "./webhook";
 import { constantTimeEqualHex, getHeader, hmacSha256Hex } from "./utils";
 
 export { createNextWebhookHandler } from "./next";
+export { createExpressWebhookHandler } from "./express";
 export { getDataFastTracking, appendDataFastTracking, attributeCreemPaymentLink } from "./client/index";
 export { createUpstashIdempotencyStore } from "./idempotency/upstash";
 export { MemoryIdempotencyStore } from "./idempotency";
@@ -42,6 +44,7 @@ export function createCreemDataFast(options: CreateCreemDataFastOptions): CreemD
     });
   const idempotencyStore = options.idempotencyStore ?? new MemoryIdempotencyStore();
   const idempotencyTtlSeconds = options.idempotencyTtlSeconds ?? 7 * 24 * 60 * 60;
+  const creemConfigured = Boolean(options.creemClient || options.creemApiKey?.trim());
 
   return {
     async createCheckout(input, context) {
@@ -63,62 +66,107 @@ export function createCreemDataFast(options: CreateCreemDataFastOptions): CreemD
     },
 
     async handleWebhook(input) {
-      await this.verifyWebhookSignature(input.rawBody, input.headers);
-      const mappedEvent = await mapWebhookToPayment(input.rawBody, {
-        creemClient,
-        hydrateTransactions: options.hydrateTransactions,
-        logger: options.logger,
-      });
+      return processWebhook(input, { bypassIdempotency: false });
+    },
 
-      if (mappedEvent.ignored) {
-        return {
-          ok: true,
-          ignored: true,
-          eventId: mappedEvent.eventId,
-          eventType: mappedEvent.eventType,
-          reason: mappedEvent.reason,
-        };
-      }
-
-      const claimed = await idempotencyStore.claim(mappedEvent.eventId, idempotencyTtlSeconds);
-      if (!claimed) {
-        return {
-          ok: true,
-          ignored: true,
-          eventId: mappedEvent.eventId,
-          eventType: mappedEvent.eventType,
-          reason: "duplicate",
-        };
-      }
-
-      try {
-        const datafastResponse = await this.forwardPayment(mappedEvent.payment);
-        options.logger?.info?.("Forwarded payment event to DataFast.", {
-          eventId: mappedEvent.eventId,
-          eventType: mappedEvent.eventType,
-          transactionId: mappedEvent.transactionId,
-        });
-
-        return {
-          ok: true,
-          ignored: false,
-          eventId: mappedEvent.eventId,
-          eventType: mappedEvent.eventType,
-          transactionId: mappedEvent.transactionId,
-          payment: mappedEvent.payment,
-          datafastResponse,
-        };
-      } catch (error) {
-        await idempotencyStore.release?.(mappedEvent.eventId);
-        throw error;
-      }
+    async replayWebhook(input) {
+      return processWebhook(input, { bypassIdempotency: true });
     },
 
     async handleWebhookRequest(request) {
       const rawBody = await request.text();
       return this.handleWebhook({ rawBody, headers: request.headers });
     },
+
+    async healthCheck() {
+      const webhookConfigured = Boolean(options.creemWebhookSecret?.trim());
+      const datafastConfigured = Boolean(options.datafastApiKey?.trim());
+      const datafastHealth = await probeDataFastHealth(options);
+      const errors = [
+        ...(creemConfigured ? [] : ["Missing Creem client or API key."]),
+        ...(webhookConfigured ? [] : ["Missing Creem webhook secret."]),
+        ...(datafastConfigured ? [] : ["Missing DataFast API key."]),
+        ...datafastHealth.errors,
+      ];
+      const ok =
+        creemConfigured &&
+        webhookConfigured &&
+        datafastConfigured &&
+        datafastHealth.datafastReachable;
+
+      return {
+        ok,
+        healthy: ok,
+        checkedAt: new Date().toISOString(),
+        creemConfigured,
+        webhookConfigured,
+        datafastConfigured,
+        datafastReachable: datafastHealth.datafastReachable,
+        datafastEndpoint: datafastHealth.datafastEndpoint,
+        datafastStatus: datafastHealth.datafastStatus,
+        errors,
+      };
+    },
   };
+
+  async function processWebhook(
+    input: Parameters<CreemDataFastClient["handleWebhook"]>[0],
+    mode: { bypassIdempotency: boolean },
+  ): Promise<HandleWebhookResult> {
+    await verifyWebhookSignature(input.rawBody, input.headers, options.creemWebhookSecret);
+    const mappedEvent = await mapWebhookToPayment(input.rawBody, {
+      creemClient,
+      hydrateTransactions: options.hydrateTransactions,
+      logger: options.logger,
+    });
+
+    if (mappedEvent.ignored) {
+      return {
+        ok: true as const,
+        ignored: true as const,
+        eventId: mappedEvent.eventId,
+        eventType: mappedEvent.eventType,
+        reason: mappedEvent.reason,
+      };
+    }
+
+    if (!mode.bypassIdempotency) {
+      const claimed = await idempotencyStore.claim(mappedEvent.eventId, idempotencyTtlSeconds);
+      if (!claimed) {
+        return {
+          ok: true as const,
+          ignored: true as const,
+          eventId: mappedEvent.eventId,
+          eventType: mappedEvent.eventType,
+          reason: "duplicate",
+        };
+      }
+    }
+
+    try {
+      const datafastResponse = await forwardDataFastPayment(mappedEvent.payment, options);
+      options.logger?.info?.("Forwarded payment event to DataFast.", {
+        eventId: mappedEvent.eventId,
+        eventType: mappedEvent.eventType,
+        transactionId: mappedEvent.transactionId,
+      });
+
+      return {
+        ok: true as const,
+        ignored: false as const,
+        eventId: mappedEvent.eventId,
+        eventType: mappedEvent.eventType,
+        transactionId: mappedEvent.transactionId,
+        payment: mappedEvent.payment,
+        datafastResponse,
+      };
+    } catch (error) {
+      if (!mode.bypassIdempotency) {
+        await idempotencyStore.release?.(mappedEvent.eventId);
+      }
+      throw error;
+    }
+  }
 }
 
 function createCreemClient(input: { creemApiKey?: string; testMode?: boolean }) {

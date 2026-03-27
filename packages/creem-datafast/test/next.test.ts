@@ -13,6 +13,9 @@ describe("createNextWebhookHandler", () => {
       async handleWebhook() {
         throw new Error("not used");
       },
+      async replayWebhook() {
+        throw new Error("not used");
+      },
       async handleWebhookRequest() {
         return {
           ok: true,
@@ -34,6 +37,19 @@ describe("createNextWebhookHandler", () => {
       async forwardPayment() {
         return null;
       },
+      async healthCheck() {
+        return {
+          ok: true,
+          healthy: true,
+          checkedAt: new Date(0).toISOString(),
+          creemConfigured: true,
+          webhookConfigured: true,
+          datafastConfigured: true,
+          datafastReachable: true,
+          datafastEndpoint: "https://datafa.st/api/v1/payments",
+          errors: [],
+        };
+      },
     } satisfies CreemDataFastClient);
 
     const response = await handler(new Request("https://example.com"));
@@ -46,6 +62,9 @@ describe("createNextWebhookHandler", () => {
         throw new Error("not used");
       },
       async handleWebhook() {
+        throw new Error("not used");
+      },
+      async replayWebhook() {
         throw new Error("not used");
       },
       async handleWebhookRequest() {
@@ -63,6 +82,19 @@ describe("createNextWebhookHandler", () => {
       async forwardPayment() {
         return null;
       },
+      async healthCheck() {
+        return {
+          ok: true,
+          healthy: true,
+          checkedAt: new Date(0).toISOString(),
+          creemConfigured: true,
+          webhookConfigured: true,
+          datafastConfigured: true,
+          datafastReachable: true,
+          datafastEndpoint: "https://datafa.st/api/v1/payments",
+          errors: [],
+        };
+      },
     } satisfies CreemDataFastClient);
 
     const response = await handler(new Request("https://example.com"));
@@ -78,6 +110,9 @@ describe("createNextWebhookHandler", () => {
       async handleWebhook() {
         throw new Error("not used");
       },
+      async replayWebhook() {
+        throw new Error("not used");
+      },
       async handleWebhookRequest() {
         throw new InvalidCreemSignatureError("bad");
       },
@@ -86,6 +121,19 @@ describe("createNextWebhookHandler", () => {
       },
       async forwardPayment() {
         return null;
+      },
+      async healthCheck() {
+        return {
+          ok: true,
+          healthy: true,
+          checkedAt: new Date(0).toISOString(),
+          creemConfigured: true,
+          webhookConfigured: true,
+          datafastConfigured: true,
+          datafastReachable: true,
+          datafastEndpoint: "https://datafa.st/api/v1/payments",
+          errors: [],
+        };
       },
     } satisfies CreemDataFastClient);
 
@@ -101,6 +149,9 @@ describe("createNextWebhookHandler", () => {
       async handleWebhook() {
         throw new Error("not used");
       },
+      async replayWebhook() {
+        throw new Error("not used");
+      },
       async handleWebhookRequest() {
         throw new Error("unexpected");
       },
@@ -109,6 +160,19 @@ describe("createNextWebhookHandler", () => {
       },
       async forwardPayment() {
         return null;
+      },
+      async healthCheck() {
+        return {
+          ok: true,
+          healthy: true,
+          checkedAt: new Date(0).toISOString(),
+          creemConfigured: true,
+          webhookConfigured: true,
+          datafastConfigured: true,
+          datafastReachable: true,
+          datafastEndpoint: "https://datafa.st/api/v1/payments",
+          errors: [],
+        };
       },
     } satisfies CreemDataFastClient);
 

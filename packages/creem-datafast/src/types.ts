@@ -38,6 +38,19 @@ export type DataFastPaymentResponse = {
   [key: string]: unknown;
 };
 
+export type HealthCheckResult = {
+  ok: boolean;
+  healthy: boolean;
+  checkedAt: string;
+  creemConfigured: boolean;
+  webhookConfigured: boolean;
+  datafastConfigured: boolean;
+  datafastReachable: boolean;
+  datafastEndpoint: string;
+  datafastStatus?: number;
+  errors: string[];
+};
+
 export type RetryOptions = {
   retries?: number;
   baseDelayMs?: number;
@@ -135,9 +148,11 @@ export type CreemDataFastClient = {
     context?: CreateCheckoutContext,
   ): Promise<CreateCheckoutResult>;
   handleWebhook(input: HandleWebhookInput): Promise<HandleWebhookResult>;
+  replayWebhook(input: HandleWebhookInput): Promise<HandleWebhookResult>;
   handleWebhookRequest(request: Request): Promise<HandleWebhookResult>;
   verifyWebhookSignature(rawBody: string, headers: HeadersLike): Promise<true>;
   forwardPayment(payment: DataFastPayment): Promise<DataFastPaymentResponse | string | null>;
+  healthCheck(): Promise<HealthCheckResult>;
 };
 
 export type BaseWebhookEvent = {

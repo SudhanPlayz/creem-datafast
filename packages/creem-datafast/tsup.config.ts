@@ -5,6 +5,7 @@ export default defineConfig({
     "src/index.ts",
     "src/react/index.tsx",
     "src/next.ts",
+    "src/express.ts",
     "src/client/index.ts",
     "src/idempotency/upstash.ts",
   ],

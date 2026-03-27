@@ -9,6 +9,7 @@
     "pretypecheck": "pnpm --filter @itzsudhan/creem-datafast build",
     "typecheck": "pnpm -r typecheck",
     "ci": "pnpm typecheck && pnpm coverage && pnpm build",
+    "smoke:webhook": "pnpm --filter @itzsudhan/creem-datafast smoke:webhook",
     "dev:demo": "pnpm --filter demo-next dev",
     "dev:express": "pnpm --filter example-express dev"
   },

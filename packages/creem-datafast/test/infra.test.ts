@@ -150,6 +150,9 @@ describe("infrastructure paths", () => {
       async handleWebhook() {
         throw new Error("not used");
       },
+      async replayWebhook() {
+        throw new Error("not used");
+      },
       async handleWebhookRequest() {
         throw new DataFastRequestError("bad gateway", {
           retryable: true,
@@ -161,6 +164,19 @@ describe("infrastructure paths", () => {
       },
       async forwardPayment() {
         return null;
+      },
+      async healthCheck() {
+        return {
+          ok: true,
+          healthy: true,
+          checkedAt: new Date(0).toISOString(),
+          creemConfigured: true,
+          webhookConfigured: true,
+          datafastConfigured: true,
+          datafastReachable: true,
+          datafastEndpoint: "https://datafa.st/api/v1/payments",
+          errors: [],
+        };
       },
     } satisfies CreemDataFastClient);
 

@@ -110,6 +110,13 @@ describe("webhooks", () => {
       reason: "duplicate",
     });
     expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    const replayed = await client.replayWebhook({ rawBody: payload, headers });
+    expect(replayed).toMatchObject({
+      ignored: false,
+      transactionId: "ord_123",
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
   it("delegates subscription checkout.completed to subscription.paid", async () => {

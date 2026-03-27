@@ -27,6 +27,11 @@
       "import": "./dist/next.js",
       "require": "./dist/next.cjs"
     },
+    "./express": {
+      "types": "./dist/express.d.ts",
+      "import": "./dist/express.js",
+      "require": "./dist/express.cjs"
+    },
     "./client": {
       "types": "./dist/client/index.d.ts",
       "import": "./dist/client/index.js",
@@ -42,12 +47,14 @@
   "files": [
     "bin",
     "dist",
+    "fixtures",
     "README.md",
     "SKILL.md"
   ],
   "scripts": {
     "build": "tsup && node ./scripts/postbuild-react-entry.cjs",
     "dev": "tsup --watch",
+    "smoke:webhook": "node ./bin/creem-datafast.cjs smoke-webhook",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc -p tsconfig.json --noEmit"

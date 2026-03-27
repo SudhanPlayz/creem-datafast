@@ -3,6 +3,7 @@ import type {
   CreateCreemDataFastOptions,
   DataFastPayment,
   DataFastPaymentResponse,
+  HealthCheckResult,
   Logger,
   RetryOptions,
 } from "./types";
@@ -18,6 +19,15 @@ type ForwardPaymentConfig = Pick<
   retry?: RetryOptions;
 };
 
+type ProbeDataFastConfig = Pick<
+  CreateCreemDataFastOptions,
+  "datafastApiKey" | "datafastEndpoint" | "fetch" | "timeoutMs"
+>;
+
+export function resolveDataFastEndpoint(datafastEndpoint?: string): string {
+  return datafastEndpoint ?? "https://datafa.st/api/v1/payments";
+}
+
 export async function forwardDataFastPayment(
   payment: DataFastPayment,
   config: ForwardPaymentConfig,
@@ -29,7 +39,7 @@ export async function forwardDataFastPayment(
     });
   }
 
-  const endpoint = config.datafastEndpoint ?? "https://datafa.st/api/v1/payments";
+  const endpoint = resolveDataFastEndpoint(config.datafastEndpoint);
   const retries = config.retry?.retries ?? 2;
   const baseDelayMs = config.retry?.baseDelayMs ?? 250;
   const maxDelayMs = config.retry?.maxDelayMs ?? 2_000;
@@ -100,6 +110,61 @@ export async function forwardDataFastPayment(
     }
 
     await delay(jitterDelay(baseDelayMs, maxDelayMs, attempt));
+  }
+}
+
+export async function probeDataFastHealth(
+  config: ProbeDataFastConfig,
+): Promise<Pick<HealthCheckResult, "datafastEndpoint" | "datafastReachable" | "datafastStatus" | "errors">> {
+  const endpoint = resolveDataFastEndpoint(config.datafastEndpoint);
+  const errors: string[] = [];
+  const fetchImpl = config.fetch ?? globalThis.fetch;
+
+  if (!fetchImpl) {
+    errors.push("Fetch API is not available in this runtime.");
+    return {
+      datafastEndpoint: endpoint,
+      datafastReachable: false,
+      errors,
+    };
+  }
+
+  if (!config.datafastApiKey?.trim()) {
+    errors.push("Missing DataFast API key.");
+    return {
+      datafastEndpoint: endpoint,
+      datafastReachable: false,
+      errors,
+    };
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(new Error("Request timed out")), config.timeoutMs ?? 8_000);
+
+  try {
+    const response = await fetchImpl(endpoint, {
+      method: "HEAD",
+      headers: {
+        authorization: `Bearer ${config.datafastApiKey}`,
+      },
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeout);
+    return {
+      datafastEndpoint: endpoint,
+      datafastReachable: true,
+      datafastStatus: response.status,
+      errors,
+    };
+  } catch (error) {
+    clearTimeout(timeout);
+    errors.push(error instanceof Error ? error.message : "DataFast health probe failed.");
+    return {
+      datafastEndpoint: endpoint,
+      datafastReachable: false,
+      errors,
+    };
   }
 }
 

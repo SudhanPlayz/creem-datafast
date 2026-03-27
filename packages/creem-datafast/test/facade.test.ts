@@ -15,6 +15,8 @@ describe("public client facade", () => {
 
     expect(typeof client.createCheckout).toBe("function");
     expect(typeof client.handleWebhook).toBe("function");
+    expect(typeof client.replayWebhook).toBe("function");
+    expect(typeof client.healthCheck).toBe("function");
   });
 
   it("also constructs against the production server branch when testMode is omitted", () => {
@@ -134,5 +136,129 @@ describe("public client facade", () => {
     expect(await store.claim("evt_1", 1)).toBe(true);
 
     nowSpy.mockRestore();
+  });
+
+  it("forwards payments through the client convenience method", async () => {
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(new Response(JSON.stringify({ message: "ok" }), { status: 200 }));
+    const client = createCreemDataFast({
+      creemClient: createFakeCreemClient(),
+      creemWebhookSecret: TEST_WEBHOOK_SECRET,
+      datafastApiKey: "df_test",
+      fetch: fetchMock,
+    });
+
+    await expect(
+      client.forwardPayment({
+        amount: 10,
+        currency: "USD",
+        transaction_id: "tran_direct",
+      }),
+    ).resolves.toEqual({ message: "ok" });
+  });
+
+  it("reports health for credentials and DataFast reachability", async () => {
+    const originalFetch = globalThis.fetch;
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(new Response(null, { status: 405 }));
+
+    const healthyClient = createCreemDataFast({
+      creemClient: createFakeCreemClient(),
+      creemWebhookSecret: TEST_WEBHOOK_SECRET,
+      datafastApiKey: "df_test",
+      fetch: fetchMock,
+      datafastEndpoint: "https://example.com/payments",
+    });
+
+    await expect(healthyClient.healthCheck()).resolves.toMatchObject({
+      ok: true,
+      healthy: true,
+      creemConfigured: true,
+      webhookConfigured: true,
+      datafastConfigured: true,
+      datafastReachable: true,
+      datafastEndpoint: "https://example.com/payments",
+      datafastStatus: 405,
+      errors: [],
+    });
+
+    // @ts-expect-error exercising the runtime-without-fetch branch
+    globalThis.fetch = undefined;
+    const noFetchClient = createCreemDataFast({
+      creemClient: createFakeCreemClient(),
+      creemWebhookSecret: TEST_WEBHOOK_SECRET,
+      datafastApiKey: "df_test",
+    });
+
+    await expect(noFetchClient.healthCheck()).resolves.toMatchObject({
+      ok: false,
+      datafastReachable: false,
+      errors: expect.arrayContaining(["Fetch API is not available in this runtime."]),
+    });
+
+    globalThis.fetch = originalFetch;
+    const offlineClient = createCreemDataFast({
+      creemClient: createFakeCreemClient(),
+      creemWebhookSecret: TEST_WEBHOOK_SECRET,
+      datafastApiKey: "df_test",
+      fetch: vi.fn<typeof fetch>().mockRejectedValue(new Error("offline")),
+    });
+
+    await expect(offlineClient.healthCheck()).resolves.toMatchObject({
+      ok: false,
+      healthy: false,
+      datafastReachable: false,
+      errors: expect.arrayContaining(["offline"]),
+    });
+
+    const unknownFailureClient = createCreemDataFast({
+      creemClient: createFakeCreemClient(),
+      creemWebhookSecret: TEST_WEBHOOK_SECRET,
+      datafastApiKey: "df_test",
+      fetch: vi.fn<typeof fetch>().mockRejectedValue("boom"),
+    });
+
+    await expect(unknownFailureClient.healthCheck()).resolves.toMatchObject({
+      ok: false,
+      healthy: false,
+      datafastReachable: false,
+      errors: expect.arrayContaining(["DataFast health probe failed."]),
+    });
+
+    const unhealthyClient = createCreemDataFast({
+      creemClient: createFakeCreemClient(),
+      creemWebhookSecret: "",
+      datafastApiKey: "",
+      fetch: vi.fn<typeof fetch>().mockRejectedValue(new Error("offline")),
+    });
+
+    await expect(unhealthyClient.healthCheck()).resolves.toMatchObject({
+      ok: false,
+      healthy: false,
+      creemConfigured: true,
+      webhookConfigured: false,
+      datafastConfigured: false,
+      datafastReachable: false,
+      datafastEndpoint: "https://datafa.st/api/v1/payments",
+    });
+
+    const missingCreemClient = createCreemDataFast({
+      creemApiKey: " ",
+      creemWebhookSecret: TEST_WEBHOOK_SECRET,
+      datafastApiKey: "df_test",
+      fetch: vi.fn<typeof fetch>().mockResolvedValue(new Response(null, { status: 200 })),
+    });
+
+    await expect(missingCreemClient.healthCheck()).resolves.toMatchObject({
+      ok: false,
+      healthy: false,
+      creemConfigured: false,
+      datafastReachable: true,
+      errors: expect.arrayContaining(["Missing Creem client or API key."]),
+    });
+
+    globalThis.fetch = originalFetch;
   });
 });
