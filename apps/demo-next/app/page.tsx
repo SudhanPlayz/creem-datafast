@@ -20,7 +20,7 @@ const runtimeBelt = [
 ];
 
 const qualityFacts = [
-  { label: "Tests", value: "83 passing" },
+  { label: "Tests", value: "92 passing" },
   { label: "Coverage", value: "100%" },
   { label: "React Layer", value: "/react shipped" },
   { label: "CI", value: "Node 18 / 20 / 22 + Bun" },
@@ -53,8 +53,8 @@ const frameworkRecipes = [
   },
   {
     name: "Express",
-    runtime: "Raw body",
-    snippet: "await client.handleWebhook({ rawBody: req.body.toString('utf8'), headers: req.headers });",
+    runtime: "Helper export",
+    snippet: "app.post('/webhooks/creem', express.raw({ type: 'application/json' }), createExpressWebhookHandler(client));",
   },
   {
     name: "Bun",

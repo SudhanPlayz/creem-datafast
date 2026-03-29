@@ -21,6 +21,7 @@ npx @itzsudhan/creem-datafast skill --write ./SKILL.md
 - Root: `createCreemDataFast`, typed errors, `MemoryIdempotencyStore`
 - React layer: `@itzsudhan/creem-datafast/react`
 - Next helper: `@itzsudhan/creem-datafast/next`
+- Express helper: `@itzsudhan/creem-datafast/express`
 - Browser helpers: `@itzsudhan/creem-datafast/client`
 - Production idempotency adapter: `@itzsudhan/creem-datafast/idempotency/upstash`
 
@@ -36,6 +37,7 @@ npx @itzsudhan/creem-datafast skill --write ./SKILL.md
 6. If the app uses direct hosted Creem payment links, use `attributeCreemPaymentLink()` from the client bundle.
 7. If the app is React or Next.js, prefer `@itzsudhan/creem-datafast/react` so the provider can initialize DataFast, flush the first pageview, and keep checkout buttons gated until tracking is ready.
 8. If the app needs a non-React browser path, use the official DataFast SDK and pass the resolved IDs into server checkout creation.
+9. For deploy checks or support flows, use `healthCheck()` and `replayWebhook(...)` instead of building ad-hoc probes or bypass logic.
 
 ## Implementation Checklist
 
@@ -46,6 +48,8 @@ npx @itzsudhan/creem-datafast skill --write ./SKILL.md
 5. If the site offers direct hosted Creem links, append `metadata[datafast_visitor_id]` and `metadata[datafast_session_id]` through the browser helper.
 6. If the frontend is React-based, add `CreemDataFastProvider` and the shipped checkout/payment-link widgets before building custom browser glue.
 7. Verify the forwarded DataFast payment payload includes `amount`, `currency`, `transaction_id`, and `datafast_visitor_id`.
+8. If the runtime is Express, prefer `createExpressWebhookHandler(client)` once the route preserves raw bodies with `express.raw(...)`.
+9. Run `healthCheck()` during deploy/startup and use the package `smoke-webhook` command for local signed webhook verification when needed.
 
 ## Demo References
 

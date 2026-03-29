@@ -10,11 +10,12 @@ This package wraps the official CREEM core TypeScript SDK, injects DataFast visi
 - Auto-captures `datafast_visitor_id` and `datafast_session_id`
 - Supports `checkout.completed`, `subscription.paid`, and `refund.created`
 - Generic webhook API for any framework
-- Tiny Next.js helper for fast App Router integration
+- Tiny Next.js and Express helpers for fast framework integration
 - Browser helpers for hosted CREEM payment links and cross-origin checkout requests
 - Optional React attribution layer with provider, hooks, and neobrutalist widgets
+- `healthCheck()`, `replayWebhook()`, and a signed `smoke-webhook` CLI
 - Idempotency, retry logic, currency-aware amount conversion, and typed errors
-- `83` tests with `100%` statements, branches, functions, and lines
+- `92` tests with `100%` statements, branches, functions, and lines
 
 ## Install
 
@@ -79,6 +80,20 @@ const result = await creemDataFast.handleWebhook({
 import { createNextWebhookHandler } from "@itzsudhan/creem-datafast/next";
 
 export const POST = createNextWebhookHandler(creemDataFast);
+```
+
+### Express Helper
+
+```ts
+import express from "express";
+import { createExpressWebhookHandler } from "@itzsudhan/creem-datafast/express";
+
+const app = express();
+app.post(
+  "/webhooks/creem",
+  express.raw({ type: "application/json" }),
+  createExpressWebhookHandler(creemDataFast),
+);
 ```
 
 ## Browser Helpers
@@ -163,13 +178,29 @@ The package maps CREEM webhook data into the DataFast Payments API format:
 - Retries with exponential backoff and jitter
 - Currency-aware conversion for zero-decimal and three-decimal currencies
 - Subscription payment hydration through the CREEM API when enabled
+- `healthCheck()` for deploy/readiness checks
+- `replayWebhook()` for signed webhook reprocessing without idempotency claim checks
 - Typed request errors with retry metadata
+
+## Operational Helpers
+
+```ts
+const health = await creemDataFast.healthCheck();
+const replayed = await creemDataFast.replayWebhook({ rawBody, headers });
+```
+
+Signed local webhook smoke replay:
+
+```bash
+npx @itzsudhan/creem-datafast smoke-webhook --url http://localhost:3000/webhooks/creem --secret whsec_xxx
+```
 
 ## Exports
 
 ### Root
 
 - `createCreemDataFast`
+- `createExpressWebhookHandler`
 - `InvalidCreemSignatureError`
 - `MissingTrackingError`
 - `DataFastRequestError`
@@ -180,6 +211,7 @@ The package maps CREEM webhook data into the DataFast Payments API format:
 
 - `@itzsudhan/creem-datafast/react`
 - `@itzsudhan/creem-datafast/next`
+- `@itzsudhan/creem-datafast/express`
 - `@itzsudhan/creem-datafast/client`
 - `@itzsudhan/creem-datafast/idempotency/upstash`
 

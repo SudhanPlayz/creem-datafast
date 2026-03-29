@@ -2,7 +2,7 @@
 
 ## Current Snapshot
 
-- `83` passing tests
+- `92` passing tests
 - `100%` statements
 - `100%` branches
 - `100%` functions
@@ -18,8 +18,8 @@
 | Webhook mapping | `checkout.completed`, `subscription.paid`, `refund.created`, ignored events |
 | Production behavior | retry logic, idempotency, Upstash adapter, duplicate-event handling |
 | Currency conversion | 0-decimal, 2-decimal, and 3-decimal currencies |
-| Framework adapter | Next.js webhook helper behavior |
-| Facade API | package-level client orchestration and error release paths |
+| Framework adapter | Next.js and Express webhook helper behavior |
+| Facade API | package-level client orchestration, health checks, replay, and error release paths |
 | React layer | provider init, root-domain resolution, attributed hooks, buttons, styles, and client-safe fallbacks |
 
 ## CI Workflow

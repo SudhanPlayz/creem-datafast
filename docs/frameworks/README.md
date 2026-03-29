@@ -59,18 +59,16 @@ export async function POST(request: Request) {
 ```ts
 import express from "express";
 import { createCreemDataFast } from "@itzsudhan/creem-datafast";
+import { createExpressWebhookHandler } from "@itzsudhan/creem-datafast/express";
 
 const app = express();
 const client = createCreemDataFast({ ...env });
 
-app.post("/webhooks/creem", express.raw({ type: "application/json" }), async (req, res) => {
-  const result = await client.handleWebhook({
-    rawBody: req.body.toString("utf8"),
-    headers: req.headers,
-  });
-
-  res.status(200).send(result.ignored ? "Ignored" : "OK");
-});
+app.post(
+  "/webhooks/creem",
+  express.raw({ type: "application/json" }),
+  createExpressWebhookHandler(client),
+);
 ```
 
 Checkout creation:
@@ -255,5 +253,20 @@ const link = attributeCreemPaymentLink("https://creem.io/payment/prod_123", {
 - In Express/Fastify/NestJS, keep the raw body intact.
 - In subdomain deployments, configure DataFast against the root domain so visitors persist across subdomains.
 - If browser analytics are blocked, use a same-origin DataFast proxy as shown in the demo app.
+
+## Ops Helpers
+
+Useful during deploys and local verification:
+
+```ts
+const health = await client.healthCheck();
+const replayed = await client.replayWebhook({ rawBody, headers });
+```
+
+Signed local replay:
+
+```bash
+pnpm smoke:webhook --url http://localhost:3000/webhooks/creem --secret whsec_xxx
+```
 
 For deeper debugging, see [../troubleshooting.md](../troubleshooting.md).

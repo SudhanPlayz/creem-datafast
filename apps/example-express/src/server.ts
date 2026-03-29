@@ -1,6 +1,7 @@
 import express from "express";
 
 import { createCreemDataFast } from "@itzsudhan/creem-datafast";
+import { createExpressWebhookHandler } from "@itzsudhan/creem-datafast/express";
 
 const app = express();
 const port = Number(process.env.PORT ?? 4_000);
@@ -44,6 +45,15 @@ const client = createCreemDataFast({
 
 app.use(express.urlencoded({ extended: false }));
 
+app.get("/health", async (_req, res, next) => {
+  try {
+    const health = await client.healthCheck();
+    res.status(health.ok ? 200 : 503).json(health);
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.get("/", (_req, res) => {
   res.type("html").send(`<!doctype html>
 <html lang="en">
@@ -68,7 +78,7 @@ app.get("/", (_req, res) => {
   <body>
     <div class="card">
       <h1>Express Generic Handler Example</h1>
-      <p>This example uses the generic raw-body webhook API from <code>@itzsudhan/creem-datafast</code>. The full direct-link attribution demo lives in the Next.js app.</p>
+      <p>This example uses the shared <code>createCreemDataFast()</code> client plus the package's <code>/express</code> webhook helper. The full direct-link attribution demo lives in the Next.js app.</p>
       <div class="actions">
         <form action="/checkout" method="post"><button type="submit">Launch Server Checkout</button></form>
         <a class="secondary" href="${paymentLink || "#"}">Product Payment Link</a>
@@ -113,25 +123,29 @@ app.post("/checkout", async (req, res, next) => {
   }
 });
 
-app.post("/webhooks/creem", express.raw({ type: "application/json" }), async (req, res, next) => {
-  try {
-    const result = await client.handleWebhook({
-      rawBody: req.body.toString("utf8"),
-      headers: req.headers,
-    });
+app.post(
+  "/webhooks/creem",
+  express.raw({ type: "application/json" }),
+  async (req, _res, next) => {
+    try {
+      const result = await client.handleWebhook({
+        rawBody: (req.body as Buffer).toString("utf8"),
+        headers: req.headers,
+      });
 
-    events.unshift({
-      timestamp: new Date().toISOString(),
-      title: "Processed webhook",
-      payload: result,
-    });
-    events.splice(10);
-
-    res.status(200).send(result.ignored ? "Ignored" : "OK");
-  } catch (error) {
-    next(error);
-  }
-});
+      events.unshift({
+        timestamp: new Date().toISOString(),
+        title: "Processed webhook",
+        payload: result,
+      });
+      events.splice(10);
+      next();
+    } catch (error) {
+      next(error);
+    }
+  },
+  createExpressWebhookHandler(client),
+);
 
 app.use((error: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   const message = error instanceof Error ? error.message : "Unknown error";

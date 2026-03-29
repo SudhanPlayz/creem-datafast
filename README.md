@@ -16,13 +16,13 @@ This monorepo contains the package, the public demo, the Express example, the fr
 ## Highlights
 
 - Wraps the official [`creem`](https://docs.creem.io/code/sdks/typescript-core) core SDK directly, not `creem_io`
-- Generic-first API for any framework, with only one tiny Next.js helper export
+- Generic-first API for any framework, plus tiny Next.js and Express helper exports
 - Optional React component layer for browser tracking, checkout buttons, and attribution UI
 - Public demo that visibly shows checkout creation, webhook processing, and the exact DataFast payload
 - Root-domain DataFast tracking plus same-origin event proxy support for subdomain-safe attribution
 - Hosted `SKILL.md` and local `npx` installer for AI-agent onboarding
-- Refund support, idempotency, currency-aware amounts, retry logic, and transaction hydration
-- `83` passing tests with `100%` statements, branches, functions, and lines
+- Refund support, idempotency, replayable webhooks, health checks, currency-aware amounts, retry logic, and transaction hydration
+- `92` passing tests with `100%` statements, branches, functions, and lines
 - CI on push and PR with Node `18`, `20`, `22`, plus Bun smoke coverage
 
 ## What The Package Does
@@ -153,6 +153,7 @@ export const POST = createNextWebhookHandler(creemDataFast);
 ```ts
 import express from "express";
 import { createCreemDataFast } from "@itzsudhan/creem-datafast";
+import { createExpressWebhookHandler } from "@itzsudhan/creem-datafast/express";
 
 const app = express();
 const creemDataFast = createCreemDataFast({
@@ -179,14 +180,11 @@ app.post("/checkout", async (req, res) => {
   res.redirect(303, checkout.checkoutUrl!);
 });
 
-app.post("/webhooks/creem", express.raw({ type: "application/json" }), async (req, res) => {
-  const result = await creemDataFast.handleWebhook({
-    rawBody: req.body.toString("utf8"),
-    headers: req.headers,
-  });
-
-  res.status(200).send(result.ignored ? "Ignored" : "OK");
-});
+app.post(
+  "/webhooks/creem",
+  express.raw({ type: "application/json" }),
+  createExpressWebhookHandler(creemDataFast),
+);
 ```
 
 ## Browser Helper And Direct-Link Flow
@@ -261,6 +259,25 @@ Use one of two primitives:
 
 Detailed recipes live in [docs/frameworks/README.md](./docs/frameworks/README.md).
 
+## Operational Helpers
+
+The package also ships a few ops-focused helpers for deploy checks and local verification:
+
+- `healthCheck()` returns a readiness snapshot for Creem config, webhook config, and DataFast reachability
+- `replayWebhook({ rawBody, headers })` reprocesses a signed webhook without claiming idempotency
+- `createExpressWebhookHandler(client)` gives Express a tiny typed webhook adapter
+
+```ts
+const health = await creemDataFast.healthCheck();
+const replayed = await creemDataFast.replayWebhook({ rawBody, headers });
+```
+
+Local smoke replay:
+
+```bash
+pnpm smoke:webhook --url http://localhost:3000/webhooks/creem --secret whsec_xxx
+```
+
 ## Payload Mapping
 
 The webhook mapper forwards the following DataFast payment shape:
@@ -286,6 +303,7 @@ The webhook mapper forwards the following DataFast payment shape:
 - Idempotency via in-memory store by default or Upstash Redis in production
 - Retry with exponential backoff and jitter for transient DataFast failures
 - Typed errors including retryable request failures
+- Replayable signed webhook fixtures through the package CLI
 
 ## Demo Apps
 
@@ -347,11 +365,17 @@ Local skill install:
 npx @itzsudhan/creem-datafast skill --write ./SKILL.md
 ```
 
+Signed webhook smoke replay:
+
+```bash
+npx @itzsudhan/creem-datafast smoke-webhook --url http://localhost:3000/webhooks/creem --secret whsec_xxx
+```
+
 ## Testing And CI
 
 Current quality bar:
 
-- `83` passing tests
+- `92` passing tests
 - `100%` statements
 - `100%` branches
 - `100%` functions
@@ -371,6 +395,7 @@ pnpm test
 pnpm coverage
 pnpm typecheck
 pnpm build
+pnpm smoke:webhook --url http://localhost:3000/webhooks/creem --secret whsec_xxx
 ```
 
 ## Docs Index
