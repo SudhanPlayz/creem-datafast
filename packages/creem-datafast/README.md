@@ -4,6 +4,12 @@ Generic-first revenue attribution bridge between CREEM and DataFast.
 
 This package wraps the official CREEM core TypeScript SDK, injects DataFast visitor attribution into checkout metadata, verifies CREEM webhooks, and forwards normalized payment events to DataFast with production-minded defaults.
 
+Need the repo-level overview or a step-by-step setup path?
+
+- Repo overview: [README.md](https://github.com/SudhanPlayz/creem-datafast/blob/master/README.md)
+- Guided setup: [guide.md](https://github.com/SudhanPlayz/creem-datafast/blob/master/guide.md)
+- Docs index: [docs/README.md](https://github.com/SudhanPlayz/creem-datafast/blob/master/docs/README.md)
+
 ## Why Use It
 
 - Official `creem` core SDK wrapper, not `creem_io`
