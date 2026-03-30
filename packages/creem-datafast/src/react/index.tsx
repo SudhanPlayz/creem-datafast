@@ -113,8 +113,9 @@ export function CreemDataFastProvider({
   const location = getRuntimeLocation();
   const [value, setValue] = useState<CreemDataFastContextValue>(() => ({
     ...defaultContext,
-    resolvedDomain: normalizeConfiguredDomain(domain) ?? resolveDataFastDomain(location.hostname),
-    eventApiUrl: resolveEventApiUrl(apiUrl, location.origin),
+    // Avoid hydration mismatches by keeping the first render free of browser-derived values.
+    resolvedDomain: normalizeConfiguredDomain(domain) ?? "",
+    eventApiUrl: apiUrl ?? DEFAULT_DATAFAST_API_URL,
   }));
   const allowedHostnamesKey = useMemo(
     () => (allowedHostnames ?? []).join(","),

@@ -4,6 +4,10 @@ This guide walks from install to a verified CREEM + DataFast attribution flow.
 
 If you want the full package overview first, read [README.md](./README.md). If you want API details only, read [packages/creem-datafast/README.md](./packages/creem-datafast/README.md).
 
+## Who This Is For
+
+Start here if you want the shortest path from package install to a real end-to-end attribution flow. If you are browsing features first, use [README.md](./README.md). If you are already integrating and only need the npm API surface, use [packages/creem-datafast/README.md](./packages/creem-datafast/README.md).
+
 ## Goal
 
 By the end of this guide you will have:

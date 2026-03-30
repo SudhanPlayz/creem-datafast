@@ -4,6 +4,12 @@ Generic-first revenue attribution for CREEM + DataFast.
 
 This repo contains the publish-ready package, a public Next.js demo, an Express example, framework recipes, and supporting docs for taking DataFast visitor attribution from the browser all the way through CREEM checkout metadata and back into DataFast payment events.
 
+![License](https://img.shields.io/badge/license-MIT-111111?style=flat-square)
+![Tests](https://img.shields.io/badge/tests-92%20passing-111111?style=flat-square)
+![Coverage](https://img.shields.io/badge/coverage-100%25-111111?style=flat-square)
+![React](https://img.shields.io/badge/react-optional%20layer-111111?style=flat-square)
+![Demo](https://img.shields.io/badge/demo-live-111111?style=flat-square)
+
 ## Links
 
 - Demo: [creem-datafast.itzsudhan.com](https://creem-datafast.itzsudhan.com)
@@ -14,6 +20,17 @@ This repo contains the publish-ready package, a public Next.js demo, an Express 
 - Testing and quality: [docs/testing-and-quality.md](./docs/testing-and-quality.md)
 - Troubleshooting: [docs/troubleshooting.md](./docs/troubleshooting.md)
 - Hosted AI skill: [creem-datafast.itzsudhan.com/SKILL.md](https://creem-datafast.itzsudhan.com/SKILL.md)
+
+## Start Here
+
+| If you want to... | Open this |
+| --- | --- |
+| install and wire the package quickly | [guide.md](./guide.md) |
+| understand the full repo and demo surface | [README.md](./README.md) |
+| read the npm-facing API docs | [packages/creem-datafast/README.md](./packages/creem-datafast/README.md) |
+| copy a framework-specific integration | [docs/frameworks/README.md](./docs/frameworks/README.md) |
+| use the optional React layer | [docs/react.md](./docs/react.md) |
+| debug a broken integration | [docs/troubleshooting.md](./docs/troubleshooting.md) |
 
 ## What You Get
 
@@ -29,6 +46,27 @@ This repo contains the publish-ready package, a public Next.js demo, an Express 
 - Signed `smoke-webhook` CLI with a built-in fixture
 - Idempotency, Upstash adapter, retry logic, currency-aware conversion, and transaction hydration
 - `92` passing tests with `100%` statements, branches, functions, and lines
+
+## Why Teams Use It
+
+Most CREEM + DataFast integrations break down into the same three problems:
+
+- getting the browser visitor ID into checkout creation reliably
+- preserving that tracking through hosted CREEM flows
+- verifying and replaying webhooks safely without hand-written glue code
+
+This package owns those pieces end to end so the merchant integration stays small.
+
+## Integration Modes
+
+| Mode | When to use it | Main entrypoint |
+| --- | --- | --- |
+| server checkout wrapper | your backend creates CREEM checkouts | `createCheckout(input, context?)` |
+| generic webhook handler | any framework with raw body or `Request` access | `handleWebhook(...)` or `handleWebhookRequest(...)` |
+| framework helper | you want a tiny adapter for common setups | `/next` or `/express` |
+| browser helpers | browser calls your checkout route or opens hosted links | `@itzsudhan/creem-datafast/client` |
+| React attribution layer | you want provider, hooks, and styled widgets | `@itzsudhan/creem-datafast/react` |
+| ops and support | readiness checks, replay, smoke tests | `healthCheck()`, `replayWebhook()`, CLI |
 
 ## Repo Layout
 
@@ -58,6 +96,23 @@ pnpm add @itzsudhan/creem-datafast
 
 If you want the fastest integration path, go straight to [guide.md](./guide.md).
 
+## Supported Frameworks
+
+Documented and supported integration paths:
+
+- Next.js
+- Express
+- Bun
+- Hono
+- Fastify
+- Elysia
+- Nitro
+- NestJS
+- generic Fetch-style runtimes
+- generic raw-body runtimes
+
+Recipes live in [docs/frameworks/README.md](./docs/frameworks/README.md).
+
 ## Core API
 
 Create one shared server client:
@@ -84,6 +139,24 @@ Primary methods:
 | `verifyWebhookSignature(rawBody, headers)` | verifies the `creem-signature` header |
 | `forwardPayment(payment)` | manually forwards a normalized DataFast payment |
 | `healthCheck()` | reports config and DataFast reachability status |
+
+## 60-Second Setup
+
+```ts
+import { createCreemDataFast } from "@itzsudhan/creem-datafast";
+import { createNextWebhookHandler } from "@itzsudhan/creem-datafast/next";
+
+export const creemDataFast = createCreemDataFast({
+  creemApiKey: process.env.CREEM_API_KEY!,
+  creemWebhookSecret: process.env.CREEM_WEBHOOK_SECRET!,
+  datafastApiKey: process.env.DATAFAST_API_KEY!,
+  testMode: true,
+});
+
+export const POST = createNextWebhookHandler(creemDataFast);
+```
+
+Then route all checkout creation through `createCheckout(...)` so DataFast tracking is injected into CREEM metadata automatically.
 
 ## Export Surface
 
@@ -317,6 +390,18 @@ cp apps/example-express/.env.example apps/example-express/.env
 pnpm install
 pnpm --filter example-express dev
 ```
+
+## Compare The Surfaces
+
+| Surface | Ships in package | Use it for |
+| --- | --- | --- |
+| root API | yes | shared server client, checkout creation, webhook handling |
+| `/next` | yes | one-line Next.js route handler |
+| `/express` | yes | Express raw-body middleware helper |
+| `/client` | yes | browser attribution helpers |
+| `/react` | yes | provider, hooks, and neobrutalist widgets |
+| demo app | repo | live end-to-end attribution walkthrough |
+| framework cookbook | repo | Bun, Hono, Fastify, Elysia, Nitro, NestJS recipes |
 
 ## AI Agent Support
 
