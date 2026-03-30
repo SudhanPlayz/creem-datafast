@@ -1,7 +1,14 @@
 {
   "name": "@itzsudhan/creem-datafast",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Generic-first revenue attribution bridge between Creem and DataFast.",
+  "keywords": [
+    "creem",
+    "datafast",
+    "revenue-attribution",
+    "webhooks",
+    "analytics"
+  ],
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
