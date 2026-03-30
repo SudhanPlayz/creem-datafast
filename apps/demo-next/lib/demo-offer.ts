@@ -47,9 +47,10 @@ const DEFAULT_FEATURES = [
 ];
 
 const FALLBACK_COPY = {
-  name: "Example Storefront Purchase",
+  name: "Demo Product",
   description:
     "Run a real purchase flow and keep the proof trail inside the same demo app.",
+  price: 4000,
   currency: "USD",
   billingType: "onetime",
 };
@@ -145,8 +146,8 @@ function createFallbackOffer(productId: string, fallbackReason: string): DemoOff
     productId,
     name: FALLBACK_COPY.name,
     description: FALLBACK_COPY.description,
-    price: null,
-    priceLabel: formatPriceLabel(null, FALLBACK_COPY.currency),
+    price: FALLBACK_COPY.price,
+    priceLabel: formatPriceLabel(FALLBACK_COPY.price, FALLBACK_COPY.currency),
     currency: FALLBACK_COPY.currency,
     billingType: FALLBACK_COPY.billingType,
     billingLabel: formatBillingLabel(FALLBACK_COPY.billingType, "once"),

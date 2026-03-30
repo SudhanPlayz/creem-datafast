@@ -6,8 +6,6 @@ import {
   CreemCheckoutButton,
   CreemDataFastProvider,
   CreemPaymentLinkButton,
-  TrackingInspector,
-  TrackingStatusBadge,
   useDataFastTracking,
 } from "@itzsudhan/creem-datafast/react";
 
@@ -86,13 +84,14 @@ function DemoDashboardSurface({ offer }: DemoDashboardProps) {
     };
   }, []);
 
-  const planName = offer.source === "creem" ? offer.name : "Pro Plan";
-  const planPrice = offer.price != null ? offer.priceLabel : "$10";
+  const planName = offer.name;
+  const planPrice = offer.priceLabel;
   const purchaseState = getPurchaseState({ offer, status, error });
   const directLinkReady = offer.availability.directPaymentLinkReady && Boolean(offer.productUrl);
   const forwardedCount = events.filter((event) => event.kind === "forward").length;
   const visitorId = tracking.datafastVisitorId ?? "pending";
   const sessionId = tracking.datafastSessionId ?? "pending";
+  const trackingDisplay = getTrackingDisplay({ status, error });
 
   return (
     <div className="storefront-shell">
@@ -146,7 +145,7 @@ function DemoDashboardSurface({ offer }: DemoDashboardProps) {
               </article>
               <article className="trace-mini-item">
                 <span>Checkout</span>
-                <strong>{status === "ready" ? "Ready" : "Waiting"}</strong>
+                <strong>{trackingDisplay.checkoutLabel}</strong>
               </article>
               <article className="trace-mini-item">
                 <span>Revenue</span>
@@ -154,7 +153,9 @@ function DemoDashboardSurface({ offer }: DemoDashboardProps) {
               </article>
             </div>
 
-            <TrackingStatusBadge className="storefront-status light-status" />
+            <span className={`surface-status surface-status-${trackingDisplay.tone} hero-status-pill`}>
+              {trackingDisplay.label}
+            </span>
           </article>
         </div>
       </section>
@@ -225,7 +226,7 @@ function DemoDashboardSurface({ offer }: DemoDashboardProps) {
               </article>
               <article className="trace-row">
                 <span>Checkout</span>
-                <strong>{status === "ready" ? "Attributed automatically" : "Waiting for tracking"}</strong>
+                <strong>{trackingDisplay.checkoutDetail}</strong>
               </article>
               <article className="trace-row">
                 <span>Webhook</span>
@@ -241,11 +242,35 @@ function DemoDashboardSurface({ offer }: DemoDashboardProps) {
 
         <div className="proof-grid-simple">
           <article className="proof-surface">
-            <TrackingInspector
-              className="storefront-inspector"
-              subtitle="The React layer reads the visitor cookie and keeps checkout attribution ready."
-              title="Tracking status"
-            />
+            <div className="proof-surface-head">
+              <div>
+                <span className="panel-kicker">Tracking status</span>
+                <h3>{trackingDisplay.title}</h3>
+                <p className="proof-copy">{trackingDisplay.copy}</p>
+              </div>
+              <span className={`surface-status surface-status-${trackingDisplay.tone}`}>
+                {trackingDisplay.label}
+              </span>
+            </div>
+
+            <div className="trace-meta">
+              <article className="trace-meta-item">
+                <span>Visitor ID</span>
+                <strong>{tracking.datafastVisitorId ?? "Waiting"}</strong>
+              </article>
+              <article className="trace-meta-item">
+                <span>Session ID</span>
+                <strong>{tracking.datafastSessionId ?? "Waiting"}</strong>
+              </article>
+              <article className="trace-meta-item">
+                <span>Domain</span>
+                <strong>{resolvedDomain || "localhost"}</strong>
+              </article>
+              <article className="trace-meta-item">
+                <span>Event proxy</span>
+                <strong>{eventApiUrl}</strong>
+              </article>
+            </div>
           </article>
 
           <article className="proof-surface">
@@ -332,11 +357,65 @@ function getPurchaseState({
 
   if (status === "error") {
     return {
-      copy: error?.message ?? "Tracking is still starting up.",
+      copy: getTrackingDisplay({ status, error }).checkoutCopy,
     };
   }
 
   return {
     copy: "Preparing attribution before checkout opens.",
+  };
+}
+
+function getTrackingDisplay({
+  status,
+  error,
+}: {
+  status: "initializing" | "ready" | "error";
+  error: Error | null;
+}): {
+  title: string;
+  copy: string;
+  label: string;
+  tone: "ready" | "error" | "initializing";
+  checkoutLabel: string;
+  checkoutDetail: string;
+  checkoutCopy: string;
+} {
+  const missingWebsiteId = error?.message.includes("websiteId") ?? false;
+
+  if (status === "ready") {
+    return {
+      title: "Live tracking is ready.",
+      copy: "The React layer is reading DataFast cookies and keeping checkout attribution attached.",
+      label: "Tracking ready",
+      tone: "ready",
+      checkoutLabel: "Ready",
+      checkoutDetail: "Attributed automatically",
+      checkoutCopy: "Ready to open a real checkout with attribution already attached.",
+    };
+  }
+
+  if (status === "error") {
+    return {
+      title: "Tracking setup is waiting on DataFast.",
+      copy: missingWebsiteId
+        ? "Add NEXT_PUBLIC_DATAFAST_WEBSITE_ID to activate live visitor tracking in this demo."
+        : "Finish the DataFast setup to activate live visitor tracking in this demo.",
+      label: "Setup needed",
+      tone: "error",
+      checkoutLabel: "Setup needed",
+      checkoutDetail: "Waiting for tracking setup",
+      checkoutCopy: "Finish DataFast setup to enable attributed checkout.",
+    };
+  }
+
+  return {
+    title: "Tracking is warming up.",
+    copy: "The page is initializing DataFast and preparing checkout attribution.",
+    label: "Preparing",
+    tone: "initializing",
+    checkoutLabel: "Preparing",
+    checkoutDetail: "Preparing attribution",
+    checkoutCopy: "Preparing attribution before checkout opens.",
   };
 }

@@ -332,6 +332,10 @@ pre {
   box-shadow: none;
 }
 
+.hero-status-pill {
+  margin-top: 18px;
+}
+
 .simple-section,
 .clean-section {
   padding-top: 72px;
@@ -473,6 +477,16 @@ pre {
 .surface-status-error {
   color: var(--warn);
   background: rgba(176, 87, 47, 0.14);
+}
+
+.surface-status-initializing {
+  background: rgba(24, 21, 18, 0.08);
+}
+
+.proof-copy {
+  margin: 10px 0 0;
+  color: var(--muted);
+  line-height: 1.72;
 }
 
 .trace-meta {
